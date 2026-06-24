@@ -50,6 +50,10 @@ Set `should_decompose = false` when a dish name is available, the food is mixed/
 
 Set `should_decompose = true` only when foods are clearly separated, no dish name is reasonably possible, the input is a platter/meal set, or benchmark mode asks for decomposition.
 
+For each returned item, `should_decompose` means whether that returned item should be decomposed further. Most returned items should have `should_decompose = false`.
+
+If `should_decompose = false`, set `decomposition_reason = null`.
+
 Estimate portion only when visual evidence supports a rough grams/ml estimate. Use `g` for solid food and `ml` for liquid.
 
 Do not use `piece` for `unit` in this workflow. If the image shows two fried eggs, estimate their total grams and mention the count in `visible_evidence`.
