@@ -1,0 +1,182 @@
+# CKM Food AI Playbook v0.1
+
+## Scope
+
+This playbook is used by the CKM internal meal image benchmark workflow.
+
+It covers:
+
+- dish-first food recognition;
+- per 100g nutrition estimation;
+- keto profile label generation;
+- deterministic validation boundaries.
+
+Use the section relevant to the current Dify node. Do not apply rules from another section when they conflict with the node's responsibility.
+
+## Global Rules
+
+Prefer dish-level recognition before ingredient-level recognition.
+
+For a named dish, treat the dish as the nutrition unit unless decomposition is explicitly required.
+
+User context may help identify the dish, cuisine, serving style, or rough portion. User context must not change nutrition facts, keto label thresholds, or validation rules.
+
+Return only the JSON required by the Dify node schema. Do not include markdown or commentary in model outputs.
+
+## A. Recognition Rules
+
+Use in node `A_dish_first_recognition`.
+
+Identify food items from meal images.
+
+Prefer a whole dish when a common dish name is likely.
+
+Examples:
+
+- If the image likely shows tomato scrambled eggs, output `西红柿炒鸡蛋` / `tomato scrambled eggs` as one dish.
+- Do not output tomato + egg + cooking oil unless decomposition is explicitly required.
+- If the image shows clearly separated chicken breast, broccoli, and rice, output separate items.
+- If the image shows hot pot, barbecue platter, buffet plate, or mixed visible components, use `meal_set` or separated items depending on visual separation.
+
+Item types:
+
+- `dish`: cooked or prepared dish treated as one nutrition unit.
+- `simple_food`: single recognizable food such as boiled egg, apple, avocado, plain rice.
+- `ingredient`: visible raw or component ingredient that is not itself the dish.
+- `meal_set`: multiple foods presented together where no single dish name is adequate.
+- `unknown`: image is too ambiguous.
+
+Set `should_decompose = false` when a dish name is available, the food is mixed/prepared as one dish, or ingredient quantity cannot be reliably estimated.
+
+Set `should_decompose = true` only when foods are clearly separated, no dish name is reasonably possible, the input is a platter/meal set, or benchmark mode asks for decomposition.
+
+Estimate portion only when visual evidence supports a rough grams/ml estimate. Use null when scale is unclear.
+
+## B1. Nutrition Rules
+
+Use in node `B1_nutrition_per_100g`.
+
+Generate estimated raw nutrition values per 100g only.
+
+Do not calculate net carbs.
+
+Do not output final Carb Impact.
+
+Use the common cooked or served form unless the item name or context clearly indicates otherwise.
+
+For dishes, estimate the average prepared dish per 100g, including typical cooking oil, sauce, moisture, and preparation style when relevant.
+
+Examples:
+
+- `西红柿炒鸡蛋` should be estimated as the cooked dish per 100g, not tomato + egg as separate raw ingredients.
+- `麻婆豆腐` should include typical tofu, sauce, oil, and seasoning assumptions.
+- Plain `chicken breast` should use cooked plain chicken breast if the image shows cooked chicken.
+
+Macronutrients should usually be present:
+
+- `calories_kcal`
+- `protein_g`
+- `fat_g`
+- `total_carb_g`
+- `fiber_g`
+- `sugar_g`
+- `sugar_alcohol_g`
+
+Micronutrients and detailed fat fields may be null when not reasonably knowable. Do not invent micronutrients only to make the output look complete.
+
+Set `nutrition_confidence = "high"` when the food is simple, standardized, or has stable common per 100g values.
+
+Set `nutrition_confidence = "low"` when recipe, oil, sauce, batter, sugar, starch, restaurant variation, or dish identity is uncertain.
+
+## B2. Keto Label Rules
+
+Use in node `B2_keto_labels`.
+
+CKM logic:
+
+- Carb is a limit.
+- Protein is a target.
+- Fat is a lever.
+- Fat Quality describes fat characteristics, not moral quality or absolute health value.
+
+Do not calculate final Carb Impact. Final Carb Impact is computed by code from net carbs.
+
+Generate:
+
+- `protein_support`
+- `fat_support`
+- `fatty_acid_profile`
+- `fat_processing`
+- reasons
+- confidence
+
+Protein Support:
+
+- `strong`: practical protein source with high protein density and reasonable calorie efficiency.
+- `moderate`: meaningful protein contribution but not primarily a protein source.
+- `limited`: protein is low, incidental, or impractical as a protein target.
+
+Fat Support:
+
+- `strong`: high fat density and practical as a fat lever with limited carb burden.
+- `moderate`: meaningful fat but not dominant, or comes with significant protein load.
+- `limited`: low fat or not useful as a fat lever.
+
+Fatty Acid Profile:
+
+- `mct_rich`: coconut or MCT-rich foods.
+- `omega_3_rich`: fatty fish or clear omega-3 evidence.
+- `monounsaturated_rich`: olive oil, avocado, many nuts.
+- `saturated_rich`: butter, cream, fatty red meat, coconut-heavy foods.
+- null: fat support is limited or evidence is unclear.
+
+Fat Processing:
+
+- `whole_food`: intact foods such as egg, fish, meat, avocado, plain vegetables, nuts.
+- `minimally_processed`: simple cooked dishes or basic dairy.
+- `processed`: packaged, refined, breaded, battered, sweetened, ultra-processed, or industrially prepared foods.
+
+Use low label confidence when B1 nutrition confidence is low, the food is a mixed restaurant dish, fat source is unclear, or label choice depends on preparation assumptions.
+
+## Validation Boundaries
+
+Use deterministic code, not LLM judgement, for:
+
+- `net_carb_g_per_100g = total_carb_g - fiber_g`
+- final Carb Impact
+- consumed nutrition by portion
+- numeric validation
+- enum validation
+
+Final Carb Impact:
+
+- `< 5g net carbs per 100g`: `very_low`
+- `< 10g`: `low`
+- `< 20g`: `moderate`
+- otherwise: `high`
+
+The Code Node must check:
+
+- all numeric nutrition values are non-negative when present;
+- `fiber_g <= total_carb_g`;
+- `sugar_g <= total_carb_g`;
+- `protein_g + fat_g + total_carb_g <= 100`;
+- fat subtype sum does not exceed total fat with small tolerance;
+- `omega_3_g <= polyunsaturated_fat_g` when both are present;
+- `mct_g <= saturated_fat_g` when both are present;
+- label enum values are valid;
+- calorie estimate is within MVP tolerance.
+
+MVP calorie formula:
+
+```text
+calories ~= protein_g * 4 + fat_g * 9 + net_carb_g * 4 + sugar_alcohol_g * 2
+```
+
+MVP tolerance:
+
+```text
+max(20 kcal, 15% of declared calories)
+```
+
+Low confidence is not the same as validation failure. Low confidence should be recorded for review and benchmark analysis.
