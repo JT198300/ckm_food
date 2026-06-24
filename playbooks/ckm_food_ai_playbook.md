@@ -33,7 +33,7 @@ Prefer a whole dish when a common dish name is likely.
 
 Examples:
 
-- If the image likely shows tomato scrambled eggs, output `西红柿炒鸡蛋` / `tomato scrambled eggs` as one dish.
+- If the image likely shows tomato scrambled eggs, output `tomato scrambled eggs` as one dish.
 - Do not output tomato + egg + cooking oil unless decomposition is explicitly required.
 - If the image shows clearly separated chicken breast, broccoli, and rice, output separate items.
 - If the image shows hot pot, barbecue platter, buffet plate, or mixed visible components, use `meal_set` or separated items depending on visual separation.
@@ -50,7 +50,11 @@ Set `should_decompose = false` when a dish name is available, the food is mixed/
 
 Set `should_decompose = true` only when foods are clearly separated, no dish name is reasonably possible, the input is a platter/meal set, or benchmark mode asks for decomposition.
 
-Estimate portion only when visual evidence supports a rough grams/ml estimate. Use null when scale is unclear.
+Estimate portion only when visual evidence supports a rough grams/ml estimate. Use `g` for solid food and `ml` for liquid.
+
+Do not use `piece` for `unit` in this workflow. If the image shows two fried eggs, estimate their total grams and mention the count in `visible_evidence`.
+
+Use `estimated_amount = null` and `unit = "unknown"` when scale is unclear.
 
 ## B1. Nutrition Rules
 
@@ -68,8 +72,8 @@ For dishes, estimate the average prepared dish per 100g, including typical cooki
 
 Examples:
 
-- `西红柿炒鸡蛋` should be estimated as the cooked dish per 100g, not tomato + egg as separate raw ingredients.
-- `麻婆豆腐` should include typical tofu, sauce, oil, and seasoning assumptions.
+- Tomato scrambled eggs should be estimated as the cooked dish per 100g, not tomato + egg as separate raw ingredients.
+- Mapo tofu should include typical tofu, sauce, oil, and seasoning assumptions.
 - Plain `chicken breast` should use cooked plain chicken breast if the image shows cooked chicken.
 
 Macronutrients should usually be present:
