@@ -136,12 +136,16 @@ Fatty Acid Profile:
 - `omega_3_rich`: fatty fish or clear omega-3 evidence.
 - `monounsaturated_rich`: olive oil, avocado, many nuts.
 - `saturated_rich`: butter, cream, fatty red meat, coconut-heavy foods.
-- null: fat support is limited or evidence is unclear.
+- null: fat support is limited, evidence is unclear, or no fatty acid profile clearly characterizes the food.
+
+Do not assign a fatty acid profile only because one fat subtype is numerically the largest. The profile should describe a clear food-level characteristic.
+
+For eggs, mixed cooked dishes, or foods where the cooking fat is unknown, prefer `fatty_acid_profile = null` unless there is strong visual or contextual evidence.
 
 Fat Processing:
 
-- `whole_food`: intact foods such as egg, fish, meat, avocado, plain vegetables, nuts.
-- `minimally_processed`: simple cooked dishes or basic dairy.
+- `whole_food`: intact foods such as eggs, fish, meat, avocado, plain vegetables, nuts, including simple cooked forms such as fried eggs, boiled eggs, grilled meat, or plain fish.
+- `minimally_processed`: simple cooked mixed dishes or basic dairy where the food is still recognizable and not industrially processed.
 - `processed`: packaged, refined, breaded, battered, sweetened, ultra-processed, or industrially prepared foods.
 
 Use low label confidence when B1 nutrition confidence is low, the food is a mixed restaurant dish, fat source is unclear, or label choice depends on preparation assumptions.
