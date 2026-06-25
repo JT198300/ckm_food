@@ -33,10 +33,12 @@ Prefer a whole dish when a common dish name is likely.
 
 Examples:
 
-- If the image likely shows tomato scrambled eggs, output `tomato scrambled eggs` as one dish.
-- Do not output tomato + egg + cooking oil unless decomposition is explicitly required.
-- If the image shows clearly separated chicken breast, broccoli, and rice, output separate items.
-- If the image shows hot pot, barbecue platter, buffet plate, or mixed visible components, use `meal_set` or separated items depending on visual separation.
+- If the image likely shows a cheeseburger, output `cheeseburger` as one dish.
+- Do not output bun + beef patty + cheese + lettuce + tomato unless decomposition is explicitly required.
+- If the image likely shows pepperoni pizza, output `pepperoni pizza` as one dish.
+- Do not output crust + tomato sauce + cheese + pepperoni unless decomposition is explicitly required.
+- If the image shows clearly separated grilled steak, asparagus, and mashed potatoes, output separate items.
+- If the image shows a barbecue platter, buffet plate, or mixed visible components, use `meal_set` or separated items depending on visual separation.
 
 Item types:
 
@@ -76,8 +78,9 @@ For dishes, estimate the average prepared dish per 100g, including typical cooki
 
 Examples:
 
-- Tomato scrambled eggs should be estimated as the cooked dish per 100g, not tomato + egg as separate raw ingredients.
-- Mapo tofu should include typical tofu, sauce, oil, and seasoning assumptions.
+- Cheeseburger should be estimated as the prepared dish per 100g, including typical bun, beef patty, cheese, condiments, and vegetables when visible or typical.
+- Pepperoni pizza should be estimated as the prepared dish per 100g, including typical crust, tomato sauce, cheese, and pepperoni.
+- Macaroni and cheese should be estimated as the prepared dish per 100g, including typical pasta, cheese sauce, and moisture assumptions.
 - Plain `chicken breast` should use cooked plain chicken breast if the image shows cooked chicken.
 
 Macronutrients should usually be present:
