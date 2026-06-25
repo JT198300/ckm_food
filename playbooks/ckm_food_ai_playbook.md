@@ -25,7 +25,7 @@ Return only the JSON required by the Dify node schema. Do not include markdown o
 
 ## A. Recognition Rules
 
-Use in node `A_dish_first_recognition`.
+Use in the food recognition LLM node.
 
 Identify food items from meal images.
 
@@ -64,7 +64,7 @@ Use `estimated_amount = null` and `unit = "unknown"` when scale is unclear.
 
 ## B1. Nutrition Rules
 
-Use in node `B1_nutrition_per_100g`.
+Use in the nutrition per 100g LLM node.
 
 Generate estimated raw nutrition values per 100g only.
 
@@ -101,7 +101,7 @@ Set `nutrition_confidence = "low"` when recipe, oil, sauce, batter, sugar, starc
 
 ## B2. Keto Label Rules
 
-Use in node `B2_keto_labels`.
+Use in the keto label generation LLM node.
 
 CKM logic:
 
