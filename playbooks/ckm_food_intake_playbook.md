@@ -41,6 +41,8 @@ Prefer dish-level recognition before ingredient-level recognition.
 
 For a named dish, output the dish as one item unless decomposition is explicitly required.
 
+Dish-first does not mean generic. Keep the food name specific enough for nutrition lookup when the image or text supports it. Do not generalize visually specific foods into broad categories such as `meat`, `fish dish`, `vegetable side`, or `dessert` when a more practical lookup name is supported.
+
 Examples:
 
 - If the image likely shows a cheeseburger, output `cheeseburger` as one dish.
@@ -67,19 +69,38 @@ Example:
 
 ## Portion Rules
 
-Estimate portion only when visual or textual evidence supports a rough grams/ml estimate.
+For every visible edible food item from an image, output a rough grams/ml estimate.
+
+Prefer an imperfect rough visual estimate over null when food is visible. Low confidence is the correct way to express uncertainty; null is not the default fallback for visible food.
 
 Use:
 
 - `g` for solid food;
 - `ml` for liquid;
-- `unknown` when amount cannot be estimated.
+- `unknown` only when amount truly cannot be estimated.
 
 Do not use `piece`, `serving`, or household units in `unit`.
 
 If the user says "2 fried eggs", estimate total grams and put the original phrase in `source_text_span`.
 
-Use `estimated_amount = null` and `unit = "unknown"` when scale is unclear.
+Use `estimated_amount = null` and `unit = "unknown"` only when:
+
+- the item is not visible enough to estimate;
+- the item is fully occluded;
+- the image does not show food;
+- the input is text-only and no quantity is provided.
+
+Benchmark portion anchors:
+
+- Round visual estimates to practical increments, usually nearest 10g or 10ml.
+- One fried egg is about 50g.
+- One bacon strip is about 8-15g.
+- A palm-sized cooked steak, chicken, or fish portion is usually 120-200g.
+- Side vegetables are often 70-150g.
+- A salad bowl is often 150-300g.
+- A cheese piece is often 30-80g.
+- A sashimi platter is often 150-250g.
+- A mug or cup drink is often 240-450ml.
 
 ## Source Tracking
 
