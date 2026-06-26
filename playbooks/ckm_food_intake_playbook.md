@@ -57,6 +57,14 @@ Examples:
 - `meal_set`: multiple foods presented together where no single dish name is adequate.
 - `unknown`: image or text is too ambiguous.
 
+Use `unknown` only when the food identity is too unclear to produce a useful nutrition lookup candidate.
+
+When the item is clearly edible but the exact identity is uncertain, output the best practical guess as `item_name` and `normalized_name`, set `recognition_confidence = "low"`, and put alternatives in `ambiguities`.
+
+Example:
+
+- Prefer `roasted beetroot or dark red vegetables` with low confidence over `unknown` when the image clearly shows a dark red roasted food item.
+
 ## Portion Rules
 
 Estimate portion only when visual or textual evidence supports a rough grams/ml estimate.
