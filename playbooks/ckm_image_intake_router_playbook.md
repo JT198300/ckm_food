@@ -64,6 +64,15 @@ For fasting timer/status screenshots with no meal content, return:
 - `input_class = "fasting_screenshot"`
 - `error_code = "fasting_screenshot_detected"`
 
+Also extract fasting timing information when visible:
+
+- elapsed fasting duration, such as `17:52:21`;
+- start time/date text, such as `昨天 15:20`;
+- end time/date text or current screenshot time when explicitly visible;
+- evidence text that supports the extraction.
+
+Do not infer hidden timestamps. If a start or end time is not visible, return null for that field.
+
 For logos, dashboards, body metric pages, charts, or unrelated screenshots with no food intake content, return:
 
 - `result_type = "failed"`
