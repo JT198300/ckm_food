@@ -54,6 +54,8 @@ Do not convert screenshot text into `intake_items` in this image router. The tex
 
 Ignore UI labels, buttons, tabs, calorie rings, charts, fasting timers, body metrics, ads, navigation bars, and unrelated app chrome unless they help identify meal context.
 
+Important: a screenshot does not need to show a real food photo to be useful. If it contains meal sections, logged food entries, food names, quantities, calories attached to food rows, or app-entered food records, classify it as `food_log_screenshot` and extract the food-related text. Do not classify it as `non_food_image` merely because it is an app UI or dashboard.
+
 ## Fasting And Non-Food Rules
 
 For fasting timer/status screenshots with no meal content, return:
@@ -67,6 +69,8 @@ For logos, dashboards, body metric pages, charts, or unrelated screenshots with 
 - `result_type = "failed"`
 - `input_class = "non_food_image"`
 - `error_code = "non_food_image_detected"` or `no_meal_content_detected`
+
+Use `non_food_image` only when there are no food names, no meal log entries, and no food intake text. If a dashboard also contains food rows, meal sections, or logged items, use `food_log_screenshot`.
 
 ## Product And Package Rules
 
