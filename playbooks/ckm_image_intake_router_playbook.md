@@ -34,13 +34,24 @@ For `meal_photo`, identify visible food items and output `result_type = "complet
 
 Prefer dish-level recognition before ingredient-level decomposition, but keep names specific enough for nutrition lookup.
 
+Dish-first is not blanket merging. If a dish name is too broad, too complex, or too generic for the downstream nutrition stage to query or estimate, split the visible food into the smallest practical nutrition-calculable units.
+
+Do not output vague names such as `bowl meal`, `mixed meal`, `plate meal`, `small bowls of vegetables and meat`, or `steak with vegetables and cheese` when the image supports more specific items and amounts.
+
+Examples:
+
+- Keep `cheeseburger` or `pepperoni pizza` as one dish when the dish is recognizable and has a usable nutrition profile.
+- Split a plate with visible steak, vegetables, cheese, and sauce into separate items with separate amounts.
+- Split multi-plate or multi-bowl meals by visible dish.
+- For soup, do not output only `pork soup` when meat, eggs, vegetables, or other major components are visible. At minimum, estimate the visible meat amount; broth may be a separate `ml` item when relevant.
+
 For every visible edible food item, output a rough grams/ml estimate.
 
 Prefer an imperfect rough visual estimate over null when food is visible. Use low confidence to express uncertainty.
 
 Use `g` for solid food and `ml` for liquids.
 
-Do not use packaging net weight, product weight, or nutrition label serving size as consumed amount.
+For product or package images, use visible package weight/capacity when the benchmark task is product recognition. Mark the source with `amount_source = "package_label"` when the amount is read from the package, or `amount_source = "visual_estimate"` when it is estimated visually.
 
 ## Text Screenshot Rules
 
@@ -83,15 +94,15 @@ Use `non_food_image` only when there are no food names, no meal log entries, and
 
 ## Product And Package Rules
 
-For product/package/product-card/nutrition-label images, do not treat product net weight or package size as consumed amount.
+For product/package/product-card/nutrition-label images, identify the food product when possible and output `result_type = "completed_food_intake"`.
 
-If the image does not say how much the user ate, return:
+When visible, use package net weight or capacity as the item amount and set `amount_source = "package_label"`. If the amount is not readable but the package size is visually clear enough, provide a rough visual estimate and set `amount_source = "visual_estimate"`.
 
-- `result_type = "failed"`
-- `input_class = "product_or_package"`
-- `error_code = "product_package_without_consumed_amount"`
+If multiple packaged foods are visible, output each product separately.
 
-If the image includes explicit consumed intake text such as "I ate 30g walnuts", return `result_type = "extracted_food_text"` and put the relevant text in `extracted_text`.
+If the product type is not recognizable or no usable product/food information is visible, return `failed` with `error_code = "no_meal_content_detected"` or `unsupported_input_type`.
+
+If the image includes explicit user intake text such as "I ate 30g walnuts", return `result_type = "extracted_food_text"` and put the relevant text in `extracted_text`.
 
 ## Error Codes
 
@@ -99,7 +110,6 @@ Use these error codes:
 
 - `fasting_screenshot_detected`
 - `non_food_image_detected`
-- `product_package_without_consumed_amount`
 - `no_meal_content_detected`
 - `unreadable_text_screenshot`
 - `missing_required_amount`
