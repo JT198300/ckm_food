@@ -45,13 +45,15 @@ Examples:
 - Split multi-plate or multi-bowl meals by visible dish.
 - For soup, do not output only `pork soup` when meat, eggs, vegetables, or other major components are visible. At minimum, estimate the visible meat amount; broth may be a separate `ml` item when relevant.
 
-For every visible edible food item, output a rough grams/ml estimate.
+For every visible edible food item, output a rough grams/ml estimate when enough visual or textual evidence exists.
 
-Prefer an imperfect rough visual estimate over null when food is visible. Use low confidence to express uncertainty.
+Prefer an imperfect rough visual estimate over null when the estimate is reasonably grounded. Use low confidence to express uncertainty.
+
+If the food identity is useful but the amount cannot be estimated responsibly, keep the food item with `estimated_amount = null`, `amount_source = "unknown"`, and low confidence. The business UI can ask the user to enter or correct the amount before nutrition calculation.
 
 Use `g` for solid food and `ml` for liquids.
 
-For product or package images, use visible package weight/capacity when the benchmark task is product recognition. Mark the source with `amount_source = "package_label"` when the amount is read from the package, or `amount_source = "visual_estimate"` when it is estimated visually.
+For product or package images, use visible package weight/capacity when the benchmark task is product recognition. Mark the source with `amount_source = "package_label"` when the amount is read from the package, or `amount_source = "visual_estimate"` when it is estimated visually. If product identity is clear but amount is not readable or responsibly estimable, keep the item and leave amount missing for user completion.
 
 ## Text Screenshot Rules
 
@@ -97,6 +99,8 @@ Use `non_food_image` only when there are no food names, no meal log entries, and
 For product/package/product-card/nutrition-label images, identify the food product when possible and output `result_type = "completed_food_intake"`.
 
 When visible, use package net weight or capacity as the item amount and set `amount_source = "package_label"`. If the amount is not readable but the package size is visually clear enough, provide a rough visual estimate and set `amount_source = "visual_estimate"`.
+
+If the edible product is recognized but no amount can be read or reasonably estimated, still output the product item with a missing amount. Do not fail the whole image intake solely because one recognized product lacks amount. The business system should collect the missing amount from the user and continue nutrition calculation for items that already have valid amounts.
 
 If multiple packaged foods are visible, output each product separately.
 
