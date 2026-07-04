@@ -46,6 +46,9 @@ Use the downstream nutrition test to decide whether to split or merge:
 - A named cohesive dish can stay as one item only when it has a stable nutrition lookup candidate, such as `cheeseburger`, `pepperoni pizza`, `omelet`, `lasagna`, or `chicken Caesar salad`.
 - A separable plate, platter, tray, or meal set is not a cohesive dish. Do not merge separate foods into names such as `egg breakfast plate`, `ham steak with eggs and vegetables`, `seared beef with fried eggs and brussels sprouts`, or `keto meal plate`.
 - When identity is uncertain but the food is visibly separate, keep it separate with a practical best-guess name and low confidence. Do not merge it into the nearest clear food.
+- Before returning a meal photo result, do a coverage check by plate zone. Do not omit a visible major edible cluster just because its identity is uncertain.
+- If two adjacent clusters have different nutrition profiles, such as bacon-wrapped meat and dark roasted vegetables, output both separately rather than choosing only one.
+- On a savory cooked meal plate, do not call dark browned side items `berries` unless they clearly look like fresh fruit. Prefer `roasted mushrooms or dark vegetables` with low confidence when the item is cooked-looking or ambiguous.
 
 Examples:
 
@@ -59,7 +62,7 @@ Do not over-split subtypes that cannot be reliably identified from the image and
 
 - For sashimi or raw fish platters, output `assorted fish sashimi` or `fish sashimi` as one edible fish item unless the fish species are explicit in text or unmistakable visually.
 - Do not split sashimi into `salmon sashimi`, `tuna sashimi`, and `white fish sashimi` based only on color or shape when the species are uncertain.
-- Wasabi, pickled ginger, soy sauce, and garnish may be separate small items only when visible and likely consumed; otherwise omit them or keep them low confidence.
+- Wasabi, pickled ginger, soy sauce, cucumber, shredded daikon, and garnish may be separate small items only when visibly meaningful and likely consumed. Omit decorative garnish when it is not nutritionally meaningful.
 
 For every visible edible food item, output a rough grams/ml estimate when enough visual or textual evidence exists.
 
