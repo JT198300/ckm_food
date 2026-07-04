@@ -38,12 +38,28 @@ Dish-first is not blanket merging. If a dish name is too broad, too complex, or 
 
 Do not output vague names such as `bowl meal`, `mixed meal`, `plate meal`, `small bowls of vegetables and meat`, or `steak with vegetables and cheese` when the image supports more specific items and amounts.
 
+Use the downstream nutrition test to decide whether to split or merge:
+
+- If one item would require averaging clearly different nutrition profiles, split it.
+- If the image shows visible boundaries between major food groups, split them into separate items.
+- Major food groups include eggs, meat, fish or seafood, vegetables, fruit, starches, cheese or dairy, sauces, dips, and condiments.
+- A named cohesive dish can stay as one item only when it has a stable nutrition lookup candidate, such as `cheeseburger`, `pepperoni pizza`, `omelet`, `lasagna`, or `chicken Caesar salad`.
+- A separable plate, platter, tray, or meal set is not a cohesive dish. Do not merge separate foods into names such as `egg breakfast plate`, `ham steak with eggs and vegetables`, `seared beef with fried eggs and brussels sprouts`, or `keto meal plate`.
+- When identity is uncertain but the food is visibly separate, keep it separate with a practical best-guess name and low confidence. Do not merge it into the nearest clear food.
+
 Examples:
 
 - Keep `cheeseburger` or `pepperoni pizza` as one dish when the dish is recognizable and has a usable nutrition profile.
 - Split a plate with visible steak, vegetables, cheese, and sauce into separate items with separate amounts.
+- Split a breakfast plate with fried eggs, ham or cured pork, roasted Brussels sprouts, bacon-wrapped sausage/appetizer, and roasted dark vegetables into separate items. Use low confidence for ambiguous meat or vegetable identity, but do not output only `egg breakfast plate`.
 - Split multi-plate or multi-bowl meals by visible dish.
 - For soup, do not output only `pork soup` when meat, eggs, vegetables, or other major components are visible. At minimum, estimate the visible meat amount; broth may be a separate `ml` item when relevant.
+
+Do not over-split subtypes that cannot be reliably identified from the image and are not needed for downstream nutrition:
+
+- For sashimi or raw fish platters, output `assorted fish sashimi` or `fish sashimi` as one edible fish item unless the fish species are explicit in text or unmistakable visually.
+- Do not split sashimi into `salmon sashimi`, `tuna sashimi`, and `white fish sashimi` based only on color or shape when the species are uncertain.
+- Wasabi, pickled ginger, soy sauce, and garnish may be separate small items only when visible and likely consumed; otherwise omit them or keep them low confidence.
 
 For every visible edible food item, output a rough grams/ml estimate when enough visual or textual evidence exists.
 
