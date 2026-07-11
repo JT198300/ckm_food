@@ -36,6 +36,19 @@ Prefer dish-level recognition before ingredient-level decomposition, but keep na
 
 For a named dish, output the dish as one item unless the text clearly lists separate foods or amounts.
 
+Use the same general nutrition-granularity test across all food categories:
+
+- Keep a cohesive named dish when it is a stable nutrition lookup candidate.
+- Split explicitly listed foods, separately quantified components, or broad combinations that would otherwise average materially different nutrition profiles.
+- Output a subtype only when it materially changes nutrition or keto interpretation and the text provides enough evidence.
+- When subtype evidence is insufficient, use a useful generic class rather than guessing.
+- Do not output both a parent dish and its component foods when that double-counts the same intake.
+- Do not add category-specific extraction rules in response to individual benchmark failures.
+
+Use a practical generic food or dish name rather than a brand-heavy product title. Preserve preparation or subtype in the name only when it materially affects nutrition; retain secondary visible or stated details in concise context fields when available.
+
+For sauces and added fats, keep physically integrated sauce within a cohesive dish. Treat a separately listed or separately quantified sauce, dip, dressing, or added fat as its own item when nutritionally meaningful.
+
 If the text contains meal sections such as breakfast, lunch, dinner, or snack, keep the food items but do not create a fake food item for the meal section itself.
 
 Ignore non-food UI text, button labels, tab names, calorie rings, charts, app navigation, exercise rows, fasting timers, advertisements, and body metrics unless they are directly attached to food rows.
