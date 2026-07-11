@@ -122,6 +122,8 @@ Important: a screenshot does not need to show a real food photo to be useful. If
 
 ## Fasting And Non-Food Rules
 
+Use `fasting_screenshot` only when the image explicitly shows an active fasting timer, fasting start/end status, or other fasting-session evidence. A generic health measurement device, biomarker reading, body metric, chart, or numeric result without explicit fasting-session evidence is `non_food_image`.
+
 For fasting timer/status screenshots with no meal content, return:
 
 - `result_type = "failed"`
