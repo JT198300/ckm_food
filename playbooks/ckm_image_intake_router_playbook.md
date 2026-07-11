@@ -36,33 +36,60 @@ Prefer dish-level recognition before ingredient-level decomposition, but keep na
 
 Dish-first is not blanket merging. If a dish name is too broad, too complex, or too generic for the downstream nutrition stage to query or estimate, split the visible food into the smallest practical nutrition-calculable units.
 
-Do not output vague names such as `bowl meal`, `mixed meal`, `plate meal`, `small bowls of vegetables and meat`, or `steak with vegetables and cheese` when the image supports more specific items and amounts.
+Do not output a presentation-level name when the image supports more specific nutrition-calculable items and amounts.
 
 Use the downstream nutrition test to decide whether to split or merge:
 
 - If one item would require averaging clearly different nutrition profiles, split it.
 - If the image shows visible boundaries between major food groups, split them into separate items.
-- Major food groups include eggs, meat, fish or seafood, vegetables, fruit, starches, cheese or dairy, sauces, dips, and condiments.
-- A named cohesive dish can stay as one item only when it has a stable nutrition lookup candidate, such as `cheeseburger`, `pepperoni pizza`, `omelet`, `lasagna`, or `chicken Caesar salad`.
-- A separable plate, platter, tray, or meal set is not a cohesive dish. Do not merge separate foods into names such as `egg breakfast plate`, `ham steak with eggs and vegetables`, `seared beef with fried eggs and brussels sprouts`, or `keto meal plate`.
+- A named cohesive dish can stay as one item only when it has a stable nutrition lookup candidate.
+- A separable plate, platter, tray, or meal set is not a cohesive dish merely because it is presented together.
 - When identity is uncertain but the food is visibly separate, keep it separate with a practical best-guess name and low confidence. Do not merge it into the nearest clear food.
 - Before returning a meal photo result, do a coverage check by plate zone. Do not omit a visible major edible cluster just because its identity is uncertain.
-- If two adjacent clusters have different nutrition profiles, such as bacon-wrapped meat and dark roasted vegetables, output both separately rather than choosing only one.
-- On a savory cooked meal plate, do not call dark browned side items `berries` unless they clearly look like fresh fruit. Prefer `roasted mushrooms or dark vegetables` with low confidence when the item is cooked-looking or ambiguous.
+- If adjacent clusters have materially different nutrition profiles, output both separately rather than choosing only one.
+
+Subtype specificity rule:
+
+- Output a subtype-level name only when both conditions are true:
+  1. the subtype has materially different nutrition or keto relevance; and
+  2. the current visual or text evidence is strong enough to identify it.
+- If nutrition differs but evidence is weak, use a practical generic name and add a short visual cue.
+- If nutrition does not materially differ, use the generic name.
+- Oil type is an exception: olive oil, coconut oil, and MCT oil should be distinguished when visible or stated because fat quality depends on oil type.
+
+Low-confidence visual cue rule:
+
+- When `recognition_confidence = "low"` because the food name may be incomplete or visually uncertain, add `nutrition_relevant_cues`.
+- Cues are concise visual facts for the nutrition stage, not explanations for the user.
+- Use max 2 cues per item, each ideally under 8 words.
+- Cues should describe visible texture, preparation, composition, or packaging without asserting an unsupported identity.
+- Do not add long descriptions. Do not estimate nutrition in cues.
+
+Identity uncertainty rule:
+
+- If the exact subtype is uncertain but a useful generic class exists, output the generic name and add concise cues.
+- If possible identities have materially different nutrition and no safe generic class exists, use the best practical guess, set `recognition_confidence = "low"`, and add concise cues for the downstream stage and user review.
+- Do not keep adding case-specific recognition constraints; use these generic rules and let the product UI handle corrections.
+
+Double-counting rule:
+
+- Do not output both a cohesive dish and its visible ingredients when that would double-count the same food mass.
+- If a food should stay as one dish, output the dish only and put important visible preparation cues in `nutrition_relevant_cues`.
+- If a food is too broad for nutrition calculation, split it into practical items and do not also output the broad parent item.
 
 Examples:
 
-- Keep `cheeseburger` or `pepperoni pizza` as one dish when the dish is recognizable and has a usable nutrition profile.
-- Split a plate with visible steak, vegetables, cheese, and sauce into separate items with separate amounts.
-- Split a breakfast plate with fried eggs, ham or cured pork, roasted Brussels sprouts, bacon-wrapped sausage/appetizer, and roasted dark vegetables into separate items. Use low confidence for ambiguous meat or vegetable identity, but do not output only `egg breakfast plate`.
-- Split multi-plate or multi-bowl meals by visible dish.
-- For soup, do not output only `pork soup` when meat, eggs, vegetables, or other major components are visible. At minimum, estimate the visible meat amount; broth may be a separate `ml` item when relevant.
+- Keep a recognizable cohesive prepared dish as one item when its common name supports a stable nutrition estimate.
+- Split a visibly separable mixed plate when keeping it whole would average materially different nutrition profiles.
+- Keep a visually uncertain subtype at a useful generic level when subtype evidence is insufficient.
 
-Do not over-split subtypes that cannot be reliably identified from the image and are not needed for downstream nutrition:
+Do not over-split subtypes that cannot be reliably identified and are not needed for downstream nutrition. Color, shape, or proximity alone is insufficient evidence for a nutritionally distinct subtype. Small sides or garnish become separate items only when visibly meaningful and likely consumed.
 
-- For sashimi or raw fish platters, output `assorted fish sashimi` or `fish sashimi` as one edible fish item unless the fish species are explicit in text or unmistakable visually.
-- Do not split sashimi into `salmon sashimi`, `tuna sashimi`, and `white fish sashimi` based only on color or shape when the species are uncertain.
-- Wasabi, pickled ginger, soy sauce, cucumber, shredded daikon, and garnish may be separate small items only when visibly meaningful and likely consumed. Omit decorative garnish when it is not nutritionally meaningful.
+Sauce and dressing rule:
+
+- If sauce, dressing, butter, cream, or oil is physically mixed into a dish and cannot be separated visually, do not output it as a separate item. Keep the dish as the item and add a short cue such as `creamy sauce` or `visible dressing`.
+- If sauce, dip, dressing, butter, cream, or oil is visibly separate on the side or in a distinct pool, output it as a separate item when nutritionally meaningful.
+- A physically separate side food is not a sauce merely because it accompanies the main dish.
 
 For every visible edible food item, output a rough grams/ml estimate when enough visual or textual evidence exists.
 
@@ -116,6 +143,8 @@ Use `non_food_image` only when there are no food names, no meal log entries, and
 ## Product And Package Rules
 
 For product/package/product-card/nutrition-label images, identify the food product when possible and output `result_type = "completed_food_intake"`.
+
+Use a generic food name as `item_name` rather than a brand-heavy product title. Preserve useful visible package details only as short cues when they matter for nutrition lookup.
 
 When visible, use package net weight or capacity as the item amount and set `amount_source = "package_label"`. If the amount is not readable but the package size is visually clear enough, provide a rough visual estimate and set `amount_source = "visual_estimate"`.
 
