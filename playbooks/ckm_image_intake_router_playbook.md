@@ -32,6 +32,10 @@ Use one of these `input_class` values:
 
 For `meal_photo`, identify visible food items and output `result_type = "completed_food_intake"`.
 
+If a meaningful portion of the image clearly shows plated or served food, classify it as `meal_photo` even when people, furniture, packaging, or other non-food background occupies more of the frame.
+
+Determine intended intake scope before extracting items. Prioritize food that is plated, served, opened for consumption, or explicitly presented as the meal. Do not automatically include background packages, storage containers, decorative food, or unrelated edible objects merely because they are visible.
+
 Prefer dish-level recognition before ingredient-level decomposition, but keep names specific enough for nutrition lookup.
 
 Dish-first is not blanket merging. If a dish name is too broad, too complex, or too generic for the downstream nutrition stage to query or estimate, split the visible food into the smallest practical nutrition-calculable units.
@@ -43,6 +47,7 @@ Use the downstream nutrition test to decide whether to split or merge:
 - If one item would require averaging clearly different nutrition profiles, split it.
 - If the image shows visible boundaries between major food groups, split them into separate items.
 - A named cohesive dish can stay as one item only when it has a stable nutrition lookup candidate.
+- A cohesive mixed dish name or its short cues must retain any clearly visible dominant component that materially changes the nutrition estimate. Do not use a narrower dish name that silently omits such a component.
 - A separable plate, platter, tray, or meal set is not a cohesive dish merely because it is presented together.
 - When identity is uncertain but the food is visibly separate, keep it separate with a practical best-guess name and low confidence. Do not merge it into the nearest clear food.
 - Before returning a meal photo result, do a coverage check by plate zone. Do not omit a visible major edible cluster just because its identity is uncertain.
@@ -83,7 +88,7 @@ Examples:
 - Split a visibly separable mixed plate when keeping it whole would average materially different nutrition profiles.
 - Keep a visually uncertain subtype at a useful generic level when subtype evidence is insufficient.
 
-Do not over-split subtypes that cannot be reliably identified and are not needed for downstream nutrition. Color, shape, or proximity alone is insufficient evidence for a nutritionally distinct subtype. Small sides or garnish become separate items only when visibly meaningful and likely consumed.
+Do not over-split subtypes that cannot be reliably identified and are not needed for downstream nutrition. Color, shape, or proximity alone is insufficient evidence for a nutritionally distinct subtype. Small sides or garnish become separate items only when visibly substantial, nutritionally meaningful, or clearly intended for consumption.
 
 Sauce and dressing rule:
 
