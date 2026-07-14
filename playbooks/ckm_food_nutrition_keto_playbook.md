@@ -4,7 +4,7 @@
 
 Use this playbook only after the intake stage has produced standardized food-and-amount JSON.
 
-This stage resolves per 100g nutrition, keto labels, deterministic derived values, and validation.
+This stage resolves per 100g nutrient fields, keto labels, deterministic derived values, and validation.
 
 It must not identify food from images. It must not infer new foods outside the provided intake item.
 
@@ -40,7 +40,11 @@ Generated data must be validated before it can be used for reporting or written 
 
 ## Nutrition Per 100g Rules
 
-Generate estimated raw nutrition values per 100g only.
+Generate estimated raw nutrient values per 100g only.
+
+Do not output calories, consumed nutrition, or meal totals from the LLM.
+
+Calories must be computed by deterministic code from the per 100g nutrient fields.
 
 Do not calculate net carbs.
 
@@ -52,7 +56,6 @@ For dishes, estimate the average prepared dish per 100g, including typical cooki
 
 Macronutrients should usually be present:
 
-- `calories_kcal`
 - `protein_g`
 - `fat_g`
 - `total_carb_g`
@@ -60,7 +63,15 @@ Macronutrients should usually be present:
 - `sugar_g`
 - `sugar_alcohol_g`
 
-Micronutrients and detailed fat fields may be null when not reasonably knowable.
+Electrolyte micronutrients should be present when reasonably knowable:
+
+- `sodium_mg`
+- `potassium_mg`
+- `magnesium_mg`
+
+Use null for electrolyte micronutrients when they are not reasonably knowable from common food data or preparation assumptions.
+
+Detailed fat fields may be null when not reasonably knowable.
 
 Do not invent micronutrients only to make the output look complete.
 
@@ -85,8 +96,9 @@ Generate:
 - `fat_support`
 - `fatty_acid_profile`
 - `fat_processing`
-- reasons
 - confidence
+
+Do not output label reasons unless the configured output schema explicitly requests them. The current CKM combined app does not request reasons.
 
 ## Protein Support
 
@@ -159,8 +171,11 @@ Use low label confidence when nutrition confidence is low, the food is a mixed r
 Use deterministic code, not LLM judgement, for:
 
 - `net_carb_g_per_100g = total_carb_g - fiber_g`
+- `calories_kcal_per_100g = protein_g * 4 + fat_g * 9 + net_carb_g_per_100g * 4 + sugar_alcohol_g * 2`
 - final Carb Impact
 - consumed nutrition by portion
+- consumed calories by portion
+- meal-level nutrition and calorie totals
 - numeric validation
 - enum validation
 - display label rules
@@ -181,19 +196,12 @@ The code stage must check:
 - fat subtype sum does not exceed total fat with small tolerance;
 - `omega_3_g <= polyunsaturated_fat_g` when both are present;
 - `mct_g <= saturated_fat_g` when both are present;
-- label enum values are valid;
-- calorie estimate is within MVP tolerance.
+- label enum values are valid.
 
-MVP calorie formula:
-
-```text
-calories ~= protein_g * 4 + fat_g * 9 + net_carb_g * 4 + sugar_alcohol_g * 2
-```
-
-MVP tolerance:
+MVP calorie formula used by code:
 
 ```text
-max(20 kcal, 15% of declared calories)
+calories_kcal_per_100g = protein_g * 4 + fat_g * 9 + net_carb_g_per_100g * 4 + sugar_alcohol_g * 2
 ```
 
 Low confidence is not the same as validation failure.
