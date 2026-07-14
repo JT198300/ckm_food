@@ -76,6 +76,50 @@ Identity uncertainty rule:
 - If possible identities have materially different nutrition and no safe generic class exists, use the best practical guess, set `recognition_confidence = "low"`, and add concise cues for the downstream stage and user review.
 - Do not keep adding case-specific recognition constraints; use these generic rules and let the product UI handle corrections.
 
+## Post-Identification Name Normalization
+
+Decide food regions, item boundaries, identity, and amount from the image before consulting this vocabulary. Then normalize only semantically compatible wording. The vocabulary is not an exhaustive candidate list.
+
+Rules:
+
+- Never invent evidence or change item boundaries to match a preferred name.
+- Preserve a subtype or state that materially changes carbs, fat, processing, or fatty-acid interpretation.
+- If no family fits, keep the image-derived practical name.
+- Use `eggs`, `meat patty`, or `fish sashimi` when preparation, animal species, or fish species is not reliable; do not guess a more specific family.
+- Use `mixed green salad` only for predominantly raw leafy greens, never for cooked cabbage or meat-and-vegetable mixtures.
+- When cheese is attached as a topping and its separate mass is unreliable, keep patty and cheese as one `... patty with cheese` item. Group repeated identical patties into one item with total amount. Never double-count a parent item and its topping.
+- Cheese subtypes are intentionally absent. Preserve the image-derived cheese subtype; never collapse different cheeses into generic `cheese` because their nutrition differs.
+- Keep breaded, battered, sweetened, smoked, cream-sauced, or dressing-added evidence in the name or concise nutrition cues.
+- Use lowercase.
+
+Canonical name families:
+
+- `eggs` <- generic or whole eggs
+- `fried eggs` <- fried egg; sunny-side-up egg
+- `boiled eggs` <- boiled egg; hard-boiled egg
+- `scrambled eggs` <- scrambled egg
+- `mixed green salad` <- green salad; garden salad; mixed greens
+- `mixed berries` <- mixed frozen berries; frozen mixed berries
+- `meat patty` <- generic patty when species is unclear
+- `beef patty` <- burger patty; hamburger patty; ground beef patty
+- `meat patty with cheese` <- generic meat patty topped with attached cheese
+- `beef patty with cheese` <- cheeseburger patty; beef patty topped with attached cheese
+- `cucumber` <- cucumber slices; raw cucumber
+- `ham` <- cooked ham; sliced ham
+- `bacon` <- cooked bacon; fried bacon
+- `sausage` <- sausages; grilled sausage
+- `fish sashimi` <- assorted sashimi; sashimi platter with uncertain fish species
+- `smoked salmon` <- smoked salmon slices
+- `cooked salmon` <- grilled salmon; baked salmon; roasted salmon
+- `chicken breast` <- cooked chicken breast; grilled chicken breast
+- `avocado` <- avocado half; sliced avocado
+- `broccoli` <- broccoli florets; cooked broccoli; steamed broccoli
+- `cauliflower` <- cauliflower florets; cooked cauliflower
+- `brussels sprouts` <- brussels sprout; roasted brussels sprouts
+- `mushrooms` <- mushroom; cooked mushrooms; sauteed mushrooms
+- `green beans` <- green bean; cooked green beans
+- `zucchini` <- cooked zucchini; roasted zucchini; sauteed zucchini
+
 Double-counting rule:
 
 - Do not output both a cohesive dish and its visible ingredients when that would double-count the same food mass.
