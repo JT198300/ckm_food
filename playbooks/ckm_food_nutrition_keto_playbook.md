@@ -129,25 +129,25 @@ Each description must be concise, ideally under 140 characters. It must support 
 - `saturated_rich`: butter, cream, fatty red meat, coconut-heavy foods.
 - null: evidence is unclear or no fatty acid profile clearly characterizes the food.
 
-Fat Support and Fatty Acid Profile are related but not identical.
+Fat Support gates Fatty Acid Profile.
 
 `fat_support` answers whether the food is useful as a practical keto fat lever.
 
-`fatty_acid_profile` answers whether the food has a characteristic fat type.
+`fatty_acid_profile` answers whether a food that already provides meaningful fat support has a characteristic fat type.
 
-A food can have `fat_support = "limited"` and still have `fatty_acid_profile = "omega_3_rich"` when fatty fish is clearly present or nutrition estimates show meaningful omega-3 content.
+When `fat_support = "limited"`, always set `fatty_acid_profile = null`, including for foods with clear omega-3 or MCT content. Do not assign any fatty-acid profile to a limited-fat-support food.
 
 For fish and seafood:
 
-- Use `omega_3_rich` when salmon, sardines, mackerel, herring, trout, tuna belly, or other fatty fish is clearly identified.
-- Use `omega_3_rich` when nutrition estimates show `omega_3_g >= 0.5g` per 100g and the item is fish or seafood.
+- Use `omega_3_rich` when `fat_support` is moderate or strong and salmon, sardines, mackerel, herring, trout, tuna belly, or other fatty fish is clearly identified.
+- Use `omega_3_rich` when `fat_support` is moderate or strong, nutrition estimates show `omega_3_g >= 0.5g` per 100g, and the item is fish or seafood.
 - Use low fatty acid profile confidence for assorted sashimi or mixed fish platters when exact fish composition varies, but do not set the profile to null if omega-3 evidence is still meaningful.
 
 For MCT-rich foods:
 
 - Use `mct_rich` for MCT oil, coconut oil, coconut cream, coconut milk, or coconut meat when coconut or MCT is a meaningful part of the food.
 - Do not use `mct_rich` for coconut flavor, small coconut garnish, or a mixed dish where coconut is minor or uncertain.
-- `mct_rich` may still be assigned and retained in raw data when `fat_support = "limited"` if MCT evidence is clear, but the display layer hides it under the Fat Quality Display Rule below.
+- Do not assign `mct_rich` when `fat_support = "limited"`; return `fatty_acid_profile = null`.
 
 For monounsaturated-rich foods:
 
@@ -216,18 +216,17 @@ calories_kcal_per_100g = protein_g * 4 + fat_g * 9 + net_carb_g_per_100g * 4 + s
 
 Low confidence is not the same as validation failure.
 
-## Fat Quality Display Rule
+## Fat Quality Output Rule
 
-The model must still return both raw fields when supported:
+The model returns:
 
 - `fat_processing`
 - `fatty_acid_profile`
 
-The deterministic display layer controls what the user sees:
+The deterministic output layer enforces:
 
-- when `fat_support = "limited"`, display only `fat_processing`; hide every fatty-acid profile, including `omega_3_rich` and `mct_rich`;
+- when `fat_support = "limited"`, set `fatty_acid_profile = null` and output only `fat_processing` as Fat Quality;
 - when `fat_support = "moderate"` or `"strong"`, display `fat_processing` and also display `fatty_acid_profile` when it is not null;
-- never delete the raw `fatty_acid_profile` from stored or benchmark data merely because it is hidden from display.
 
 ## Label Conflict Precedence
 
