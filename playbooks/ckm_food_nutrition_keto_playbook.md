@@ -205,3 +205,12 @@ calories_kcal_per_100g = protein_g * 4 + fat_g * 9 + net_carb_g_per_100g * 4 + s
 ```
 
 Low confidence is not the same as validation failure.
+
+## Label Conflict Precedence
+
+Apply category-specific exclusions after all general fatty-acid rules. A specific exclusion overrides a generic numeric or food-family heuristic.
+
+- For plain eggs, boiled eggs, poached eggs, scrambled eggs, or fried eggs with no explicit dominant cooking fat, set `fatty_acid_profile = null`.
+- The word `fried` does not prove butter, coconut oil, palm oil, or another saturated-fat source.
+- Do not use `saturated_rich` for eggs merely because saturated fat is the largest reported fat subtype.
+- Low confidence does not make an otherwise unsupported fatty-acid profile acceptable. When evidence is insufficient, return null with the appropriate confidence.
