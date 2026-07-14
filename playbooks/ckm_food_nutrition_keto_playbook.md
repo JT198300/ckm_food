@@ -63,6 +63,8 @@ Macronutrients should usually be present:
 - `sugar_g`
 - `sugar_alcohol_g`
 
+`total_carb_g` includes sugar alcohol. Sugar alcohol must not be added on top of `total_carb_g` again. Deterministic code excludes `sugar_alcohol_g` from net carbs.
+
 Electrolyte micronutrients should be present when reasonably knowable:
 
 - `sodium_mg`
@@ -99,6 +101,13 @@ Generate:
 - confidence
 
 Do not output label reasons unless the configured output schema explicitly requests them. The current CKM combined app does not request reasons.
+
+Output short decision descriptions when the configured schema requests `label_descriptions`:
+
+- `protein_support`: one sentence stating the decisive protein-density or practicality evidence;
+- `fat_support`: one sentence stating the decisive fat-density and protein/carb-load evidence.
+
+Each description must be concise, ideally under 140 characters. It must support the selected label using the generated per 100g values or an explicit food property. Do not output chain-of-thought, long explanations, health advice, or generic restatements of the label.
 
 ## Protein Support
 
@@ -138,7 +147,7 @@ For MCT-rich foods:
 
 - Use `mct_rich` for MCT oil, coconut oil, coconut cream, coconut milk, or coconut meat when coconut or MCT is a meaningful part of the food.
 - Do not use `mct_rich` for coconut flavor, small coconut garnish, or a mixed dish where coconut is minor or uncertain.
-- `mct_rich` may be shown even when `fat_support = "limited"` if MCT evidence is clear, but this should be uncommon.
+- `mct_rich` may still be assigned and retained in raw data when `fat_support = "limited"` if MCT evidence is clear, but the display layer hides it under the Fat Quality Display Rule below.
 
 For monounsaturated-rich foods:
 
@@ -170,7 +179,7 @@ Use low label confidence when nutrition confidence is low, the food is a mixed r
 
 Use deterministic code, not LLM judgement, for:
 
-- `net_carb_g_per_100g = total_carb_g - fiber_g`
+- `net_carb_g_per_100g = total_carb_g - fiber_g - sugar_alcohol_g`
 - `calories_kcal_per_100g = protein_g * 4 + fat_g * 9 + net_carb_g_per_100g * 4 + sugar_alcohol_g * 2`
 - final Carb Impact
 - consumed nutrition by portion
@@ -191,6 +200,7 @@ The code stage must check:
 
 - all numeric nutrition values are non-negative when present;
 - `fiber_g <= total_carb_g`;
+- `fiber_g + sugar_alcohol_g <= total_carb_g`;
 - `sugar_g <= total_carb_g`;
 - `protein_g + fat_g + total_carb_g <= 100`;
 - fat subtype sum does not exceed total fat with small tolerance;
@@ -205,6 +215,19 @@ calories_kcal_per_100g = protein_g * 4 + fat_g * 9 + net_carb_g_per_100g * 4 + s
 ```
 
 Low confidence is not the same as validation failure.
+
+## Fat Quality Display Rule
+
+The model must still return both raw fields when supported:
+
+- `fat_processing`
+- `fatty_acid_profile`
+
+The deterministic display layer controls what the user sees:
+
+- when `fat_support = "limited"`, display only `fat_processing`; hide every fatty-acid profile, including `omega_3_rich` and `mct_rich`;
+- when `fat_support = "moderate"` or `"strong"`, display `fat_processing` and also display `fatty_acid_profile` when it is not null;
+- never delete the raw `fatty_acid_profile` from stored or benchmark data merely because it is hidden from display.
 
 ## Label Conflict Precedence
 
