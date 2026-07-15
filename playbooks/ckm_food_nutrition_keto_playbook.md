@@ -104,22 +104,124 @@ Do not output label reasons unless the configured output schema explicitly reque
 
 Output short decision descriptions when the configured schema requests `label_descriptions`:
 
-- `protein_support`: one sentence stating the decisive protein-density or practicality evidence;
-- `fat_support`: one sentence stating the decisive fat-density and protein/carb-load evidence.
+- `protein_support`: use the fixed template defined by `calculateSupportLabels` below;
+- `fat_support`: use the fixed template defined by `calculateSupportLabels` below.
 
 Each description must be concise, ideally under 140 characters. It must support the selected label using the generated per 100g values or an explicit food property. Do not output chain-of-thought, long explanations, health advice, or generic restatements of the label.
 
 ## Protein Support
 
-- `strong`: practical protein source with high protein density and reasonable calorie efficiency.
-- `moderate`: meaningful protein contribution but not primarily a protein source.
-- `limited`: protein is low, incidental, or impractical as a protein target.
+- `strong`: final result returned by the executable rule below.
+- `moderate`: final result returned by the executable rule below.
+- `limited`: final result returned by the executable rule below.
 
 ## Fat Support
 
-- `strong`: high fat density and practical as a fat lever with limited carb burden.
-- `moderate`: meaningful fat but not dominant, or comes with significant protein load.
-- `limited`: low fat or not useful as a fat lever.
+- `strong`: final result returned by the executable rule below.
+- `moderate`: final result returned by the executable rule below.
+- `limited`: final result returned by the executable rule below.
+
+## Executable Protein and Fat Support Rules
+
+After generating the per-100g nutrition values for an item, execute the following logic exactly. Do not replace it with qualitative judgement, food-family assumptions, or an alternative threshold.
+
+This calculation happens inside the LLM node. `calculated_kcal_per_100g` is an internal intermediate value used only for these labels and descriptions; do not add it to the structured output. The deterministic output layer independently recomputes final calories and net carbs.
+
+```typescript
+type SupportTier = "strong" | "moderate" | "limited";
+
+type SupportResult = {
+  protein_support: SupportTier;
+  fat_support: SupportTier;
+  protein_description: string;
+  fat_description: string;
+};
+
+function calculateSupportLabels(n: {
+  protein_g: number;
+  fat_g: number;
+  total_carb_g: number;
+  fiber_g: number;
+  sugar_alcohol_g: number;
+}): SupportResult {
+  const protein_g = Math.max(n.protein_g, 0);
+  const fat_g = Math.max(n.fat_g, 0);
+  const total_carb_g = Math.max(n.total_carb_g, 0);
+  const fiber_g = Math.max(n.fiber_g, 0);
+  const sugar_alcohol_g = Math.max(n.sugar_alcohol_g, 0);
+
+  // Sugar alcohol is included in total carbs but excluded from net carbs.
+  const net_carb_g = Math.max(total_carb_g - fiber_g - sugar_alcohol_g, 0);
+  const protein_kcal = protein_g * 4;
+  const fat_kcal = fat_g * 9;
+  const calculated_kcal_per_100g =
+    protein_kcal + fat_kcal + net_carb_g * 4 + sugar_alcohol_g * 2;
+  const protein_kcal_pct = calculated_kcal_per_100g > 0
+    ? protein_kcal / calculated_kcal_per_100g * 100
+    : 0;
+  const fat_kcal_pct = calculated_kcal_per_100g > 0
+    ? fat_kcal / calculated_kcal_per_100g * 100
+    : 0;
+
+  let protein_base: SupportTier;
+  if (protein_g >= 20) protein_base = "strong";
+  else if (protein_g >= 10) protein_base = "moderate";
+  else protein_base = "limited";
+
+  let protein_support = protein_base;
+  if (protein_base === "strong" && protein_kcal_pct < 25) {
+    protein_support = "moderate";
+  } else if (
+    protein_base === "limited" &&
+    protein_g >= 5 &&
+    protein_kcal_pct >= 40
+  ) {
+    protein_support = "moderate";
+  }
+
+  let fat_base: SupportTier;
+  if (fat_g >= 20) fat_base = "strong";
+  else if (fat_g >= 8) fat_base = "moderate";
+  else fat_base = "limited";
+
+  let fat_support = fat_base;
+  if (
+    fat_base === "strong" &&
+    (net_carb_g >= 20 || protein_kcal_pct >= 35)
+  ) {
+    fat_support = "moderate";
+  } else if (
+    fat_base === "limited" &&
+    fat_g >= 5 &&
+    fat_kcal_pct >= 50
+  ) {
+    fat_support = "moderate";
+  }
+
+  const protein_description =
+    `${protein_g.toFixed(1)}g protein/100g -> base ${protein_base}; ` +
+    `${protein_kcal_pct.toFixed(1)}% of calculated kcal -> ${protein_support}.`;
+  const fat_description =
+    `${fat_g.toFixed(1)}g fat/100g -> base ${fat_base}; ` +
+    `net carbs ${net_carb_g.toFixed(1)}g and protein ${protein_kcal_pct.toFixed(1)}% of kcal -> ${fat_support}.`;
+
+  return {
+    protein_support,
+    fat_support,
+    protein_description,
+    fat_description,
+  };
+}
+```
+
+Map the function output to the schema exactly:
+
+- `labels.protein_support = protein_support`
+- `labels.fat_support = fat_support`
+- `label_descriptions.protein_support = protein_description`
+- `label_descriptions.fat_support = fat_description`
+
+If the generated nutrition values are uncertain, still execute the same function using the generated numeric values. Express uncertainty through `nutrition_confidence` and `label_confidence`; do not change the label outside this function.
 
 ## Fatty Acid Profile
 
