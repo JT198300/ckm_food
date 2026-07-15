@@ -257,15 +257,25 @@ Fat Support gates Fatty Acid Profile.
 
 `fat_support` answers whether the food is useful as a practical keto fat lever.
 
-`fatty_acid_profile` answers whether a food that already provides meaningful fat support has a characteristic fat type.
+`fatty_acid_profile` is a single-choice field describing the highest-priority characteristic fat type supported by the evidence.
 
 When `fat_support = "limited"`, always set `fatty_acid_profile = null`, including for foods with clear omega-3 or MCT content. Do not assign any fatty-acid profile to a limited-fat-support food.
+
+When `fat_support` is `moderate` or `strong`, first evaluate which profiles meet their evidence standards, then return exactly one using this first-match priority:
+
+1. `mct_rich`
+2. `omega_3_rich`
+3. `monounsaturated_rich`
+4. `saturated_rich`
+5. null when none qualifies
+
+Priority is only a tie-break between profiles that independently qualify. It must not make an unsupported higher-priority profile eligible.
 
 For fish and seafood:
 
 - Use `omega_3_rich` when `fat_support` is moderate or strong and salmon, sardines, mackerel, herring, trout, tuna belly, or other fatty fish is clearly identified.
 - Use `omega_3_rich` when `fat_support` is moderate or strong, nutrition estimates show `omega_3_g >= 0.5g` per 100g, and the item is fish or seafood.
-- Use low fatty acid profile confidence for assorted sashimi or mixed fish platters when exact fish composition varies, but do not set the profile to null if omega-3 evidence is still meaningful.
+- Use low fatty acid profile confidence for assorted sashimi or mixed fish platters when exact fish composition varies, but return `omega_3_rich` when omega-3 evidence is still meaningful and no qualifying MCT evidence exists.
 
 For MCT-rich foods:
 
@@ -278,18 +288,18 @@ For monounsaturated-rich foods:
 - Use `monounsaturated_rich` for olive oil, olives, avocado, macadamia nuts, almonds, pecans, or foods clearly dominated by these fat sources.
 - Use `monounsaturated_rich` when total fat is meaningful and monounsaturated fat is clearly dominant.
 - Do not use `monounsaturated_rich` only because monounsaturated fat is the largest subtype in an otherwise lean food.
-- For mixed cooked dishes with unknown oil, prefer `fatty_acid_profile = null` or low confidence unless the oil or fat source is visually or contextually clear.
+- For mixed cooked dishes with unknown oil, do not select `monounsaturated_rich` unless the oil or fat source is visually or contextually clear.
 
 For saturated-rich foods:
 
 - Use `saturated_rich` for butter, cream, high-fat cheese, coconut-heavy foods, palm oil-heavy foods, fatty red meat, pork belly, bacon, sausage, or other clearly saturated-fat-dominant foods.
 - Use `saturated_rich` when total fat is meaningful and saturated fat is clearly high relative to total fat.
 - Do not use `saturated_rich` for lean red meat, lean pork, skinless poultry, low-fat dairy, or small amounts of cheese or cream in a mixed dish.
-- For mixed restaurant dishes where the fat source is unclear, prefer `fatty_acid_profile = null` or low confidence.
+- For mixed restaurant dishes where the fat source is unclear, do not select `saturated_rich` unless the evidence supports it.
 
 Do not assign a fatty acid profile only because one fat subtype is numerically the largest.
 
-For eggs, mixed cooked dishes, or foods where the cooking fat is unknown, prefer `fatty_acid_profile = null` unless there is strong visual or contextual evidence.
+For eggs, mixed cooked dishes, or foods where the cooking fat is unknown, return null unless there is strong visual or contextual evidence for a profile.
 
 ## Fat Processing
 
