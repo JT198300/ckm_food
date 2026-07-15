@@ -129,6 +129,26 @@ This calculation happens inside the LLM node. `calculated_kcal_per_100g` is an i
 
 Critical arithmetic constraint: use only `calculated_kcal_per_100g` from this function as the percentage denominator. Do not substitute remembered food calories, database calories, rounded label calories, or any other calorie estimate. Before returning an item, verify that both percentages, both descriptions, and both final labels match the same function execution.
 
+Equivalent final decision table, used as the mandatory self-check:
+
+```text
+protein_g >= 20:
+  protein_support = moderate if protein_kcal_pct < 25, otherwise strong
+10 <= protein_g < 20:
+  protein_support = moderate
+protein_g < 10:
+  protein_support = moderate only if protein_g >= 5 and protein_kcal_pct >= 40, otherwise limited
+
+fat_g >= 20:
+  fat_support = moderate if net_carb_g >= 20 or protein_kcal_pct >= 35, otherwise strong
+8 <= fat_g < 20:
+  fat_support = moderate
+fat_g < 8:
+  fat_support = moderate only if fat_g >= 5 and fat_kcal_pct >= 50, otherwise limited
+```
+
+No other transition is allowed. In particular, a `moderate` base can never become `strong`, and Fat Support must not be upgraded by general food intuition. If a description states `base moderate`, its final support label must be `moderate`.
+
 ```typescript
 type SupportTier = "strong" | "moderate" | "limited";
 
