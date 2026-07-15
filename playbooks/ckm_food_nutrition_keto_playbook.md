@@ -127,6 +127,8 @@ After generating the per-100g nutrition values for an item, execute the followin
 
 This calculation happens inside the LLM node. `calculated_kcal_per_100g` is an internal intermediate value used only for these labels and descriptions; do not add it to the structured output. The deterministic output layer independently recomputes final calories and net carbs.
 
+Critical arithmetic constraint: use only `calculated_kcal_per_100g` from this function as the percentage denominator. Do not substitute remembered food calories, database calories, rounded label calories, or any other calorie estimate. Before returning an item, verify that both percentages, both descriptions, and both final labels match the same function execution.
+
 ```typescript
 type SupportTier = "strong" | "moderate" | "limited";
 
