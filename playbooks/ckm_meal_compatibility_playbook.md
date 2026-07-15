@@ -1,4 +1,4 @@
-# CKM Meal Compatibility Playbook v0.2
+# CKM Meal Compatibility Playbook v0.3
 
 ## Scope
 
@@ -28,36 +28,96 @@ Return exactly one:
 - `moderate_impact_expected`
 - `may_challenge_ketosis`
 
-## Classification Decision Table
+## Classification Function
 
-First calculate these two booleans from `meal_totals` without using food names:
+Execute this function exactly once using `meal_totals`. Copy its returned `compatibility` and `primary_reason_code` directly into the output. Do not reinterpret or revise the return value using food names or any other context.
 
-```text
-high_fiber = fiber_g > 8
-protein_dominant = protein_g >= 60 and fat_g < protein_g
+```typescript
+type Compatibility =
+  | "expected_to_support_ketosis"
+  | "moderate_impact_expected"
+  | "may_challenge_ketosis";
+
+type Result = {
+  compatibility: Compatibility;
+  primary_reason_code: string;
+};
+
+function classifyMeal(totals: {
+  net_carb_g: number;
+  fiber_g: number;
+  protein_g: number;
+  fat_g: number;
+}): Result {
+  const net = totals.net_carb_g;
+  const highFiber = totals.fiber_g > 8;
+  const proteinDominant =
+    totals.protein_g >= 60 && totals.fat_g < totals.protein_g;
+
+  if (net < 7) {
+    return {
+      compatibility: "expected_to_support_ketosis",
+      primary_reason_code: "low_net_carb",
+    };
+  }
+
+  if (net < 10) {
+    return proteinDominant
+      ? {
+          compatibility: "moderate_impact_expected",
+          primary_reason_code: "low_net_carb_protein_dominant",
+        }
+      : {
+          compatibility: "expected_to_support_ketosis",
+          primary_reason_code: "low_net_carb",
+        };
+  }
+
+  if (net < 15) {
+    return {
+      compatibility: "moderate_impact_expected",
+      primary_reason_code: "moderate_net_carb",
+    };
+  }
+
+  if (net <= 20) {
+    if (highFiber && proteinDominant) {
+      return {
+        compatibility: "moderate_impact_expected",
+        primary_reason_code: "moderate_net_carb_balanced_adjustments",
+      };
+    }
+    if (highFiber) {
+      return {
+        compatibility: "expected_to_support_ketosis",
+        primary_reason_code: "moderate_net_carb_high_fiber",
+      };
+    }
+    if (proteinDominant) {
+      return {
+        compatibility: "may_challenge_ketosis",
+        primary_reason_code: "moderate_net_carb_protein_dominant",
+      };
+    }
+    return {
+      compatibility: "moderate_impact_expected",
+      primary_reason_code: "moderate_net_carb",
+    };
+  }
+
+  if (net <= 25 && highFiber) {
+    return {
+      compatibility: "moderate_impact_expected",
+      primary_reason_code: "higher_net_carb_high_fiber",
+    };
+  }
+
+  return {
+    compatibility: "may_challenge_ketosis",
+    primary_reason_code: "higher_net_carb",
+  };
+}
 ```
-
-Then select exactly one row from this mutually exclusive table. The selected row directly determines both `compatibility` and `primary_reason_code`.
-
-| Net carbohydrate | Additional condition | Compatibility | Primary reason code |
-|---|---|---|---|
-| `net_carb_g < 7` | any | `expected_to_support_ketosis` | `low_net_carb` |
-| `7 <= net_carb_g < 10` | `protein_dominant = true` | `moderate_impact_expected` | `low_net_carb_protein_dominant` |
-| `7 <= net_carb_g < 10` | `protein_dominant = false` | `expected_to_support_ketosis` | `low_net_carb` |
-| `10 <= net_carb_g < 15` | any | `moderate_impact_expected` | `moderate_net_carb` |
-| `15 <= net_carb_g <= 20` | `high_fiber = true` and `protein_dominant = true` | `moderate_impact_expected` | `moderate_net_carb_balanced_adjustments` |
-| `15 <= net_carb_g <= 20` | `high_fiber = true` and `protein_dominant = false` | `expected_to_support_ketosis` | `moderate_net_carb_high_fiber` |
-| `15 <= net_carb_g <= 20` | `high_fiber = false` and `protein_dominant = true` | `may_challenge_ketosis` | `moderate_net_carb_protein_dominant` |
-| `15 <= net_carb_g <= 20` | `high_fiber = false` and `protein_dominant = false` | `moderate_impact_expected` | `moderate_net_carb` |
-| `20 < net_carb_g <= 25` | `high_fiber = true` | `moderate_impact_expected` | `higher_net_carb_high_fiber` |
-| `20 < net_carb_g <= 25` | `high_fiber = false` | `may_challenge_ketosis` | `higher_net_carb` |
-| `net_carb_g > 25` | any | `may_challenge_ketosis` | `higher_net_carb` |
-
-Do not apply high fiber or protein dominance outside the row in which it is explicitly listed. In particular:
-
-- between 10g and less than 15g net carbohydrate, neither factor changes the result;
-- above 20g net carbohydrate, protein dominance does not change the result;
-- above 25g net carbohydrate, high fiber does not change the result.
 
 Net carbohydrate is always the primary driver. Do not apply subjective health, ingredient-quality, food-processing, calorie, meal-time, or user-preference adjustments.
 
