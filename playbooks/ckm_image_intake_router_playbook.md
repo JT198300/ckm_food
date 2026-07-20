@@ -90,7 +90,11 @@ Rules:
 - When cheese is attached as a topping and its separate mass is unreliable, keep patty and cheese as one `... patty with cheese` item. Group repeated identical patties into one item with total amount. Never double-count a parent item and its topping.
 - Cheese subtypes are intentionally absent. Preserve the image-derived cheese subtype; never collapse different cheeses into generic `cheese` because their nutrition differs.
 - Keep breaded, battered, sweetened, smoked, cream-sauced, or dressing-added evidence in the name or concise nutrition cues.
-- Use lowercase.
+- Treat the canonical name families below as lowercase `normalized_name` values used for lookup and matching.
+- Output `item_name` as a frontend-facing English name using sentence case: capitalize the first word, not every word.
+- Preserve conventional capitalization for proper names and acronyms, such as `Greek yogurt`, `Caesar salad`, `Brussels sprouts`, `MCT oil`, and `BLT sandwich`.
+- Do not use Title Case for every word. Prefer `Grilled chicken salad`, not `Grilled Chicken Salad`.
+- The validation layer derives lowercase `normalized_name` from `item_name`; capitalization must not change food identity, specificity, or item boundaries.
 
 Canonical name families:
 

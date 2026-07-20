@@ -47,6 +47,14 @@ Use the same general nutrition-granularity test across all food categories:
 
 Use a practical generic food or dish name rather than a brand-heavy product title. Preserve preparation or subtype in the name only when it materially affects nutrition; retain secondary visible or stated details in concise context fields when available.
 
+## Food Name Capitalization
+
+- Output `item_name` as a frontend-facing English name using sentence case: capitalize the first word, not every word.
+- Preserve conventional capitalization for proper names and acronyms, such as `Greek yogurt`, `Caesar salad`, `Brussels sprouts`, `MCT oil`, and `BLT sandwich`.
+- Do not use Title Case for every word. Prefer `Smoked salmon with cream cheese`, not `Smoked Salmon With Cream Cheese`.
+- The validation layer derives lowercase `normalized_name` from `item_name` for lookup and matching.
+- Capitalization must not change the food identity, preparation, subtype, or item boundaries extracted from the source text.
+
 For sauces and added fats, keep physically integrated sauce within a cohesive dish. Treat a separately listed or separately quantified sauce, dip, dressing, or added fat as its own item when nutritionally meaningful.
 
 If the text contains meal sections such as breakfast, lunch, dinner, or snack, keep the food items but do not create a fake food item for the meal section itself.
