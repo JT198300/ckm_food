@@ -1,4 +1,4 @@
-# CKM Image Intake Router Playbook v0.1
+# CKM Image Intake Router Playbook v0.2
 
 ## Scope
 
@@ -27,6 +27,27 @@ Use one of these `input_class` values:
 - `product_or_package`: a product, package, product card, nutrition label, or shopping page.
 - `non_food_image`: logo, chart, body metric page, dashboard, empty UI screen, or unrelated image.
 - `uncertain`: image type is unclear.
+
+## Priority Routing Patch
+
+Apply this order before the detailed rules below:
+
+```python
+def route_image(image):
+    if readable_food_log_or_meal_text(image):
+        return extracted_food_text()
+    candidates = detect_visible_intake_candidates(image)
+    edible = [x for x in candidates if not supplement_medication_or_energy_shot(x)]
+    if edible:
+        return completed_food_intake(classify_food_input(edible), edible)
+    if candidates and all(supplement_medication_or_energy_shot(x) for x in candidates):
+        return failed("unsupported_input_type")
+    return failed_after_final_food_evidence_check()
+```
+
+Food may occupy only a small image region. A clear edible region, food package, grocery item, or food-log text takes precedence over non-food background. When exact subtype is unclear but a useful generic food class exists, return that class with low confidence instead of failing.
+
+Supplement pills, capsules, vitamin products, creatine products, electrolyte supplements, medication, and energy shots are never food intake items. If supplements appear beside edible food or an edible ingredient, omit the supplements and keep the edible items. Return `failed` with `unsupported_input_type` only when no edible item remains. Food ingredients such as butter, edible oils, MCT oil, and visibly prepared protein or meal-replacement drinks remain valid intake.
 
 ## Meal Photo Rules
 
@@ -146,9 +167,20 @@ Sauce and dressing rule:
 
 For every visible edible food item, output a rough grams/ml estimate when enough visual or textual evidence exists.
 
-Prefer an imperfect rough visual estimate over null when the estimate is reasonably grounded. Use low confidence to express uncertainty.
+Prefer an imperfect rough visual estimate over null when the estimate is reasonably grounded. A standard plate, bowl, cup, glass, can, bottle, pan, tray, package, hand, utensil, or visible item count is sufficient scale evidence. For a complete plated serving, whole pizza, steak, patty, egg, bread slice, cheese portion, dessert piece, or visibly filled drink container, output one plausible central estimate and use low confidence when needed. Normal uncertainty of tens of grams is not a reason to return null.
 
-If the food identity is useful but the amount cannot be estimated responsibly, keep the food item with `estimated_amount = null`, `amount_source = "unknown"`, and low confidence. The business UI can ask the user to enter or correct the amount before nutrition calculation.
+Before returning `completed_food_intake`, run this amount completeness check:
+
+```python
+for item in intake_items:
+    if whole_visible_portion(item) and has_any_scale_anchor(item):
+        assert item.estimated_amount > 0
+        assert item.unit in {"g", "ml"}
+```
+
+This check applies to ordinary served food and visible raw food portions. It does not authorize inventing a package-label value.
+
+Use null only when no scale anchor exists, the food is severely cropped or obscured, or plausible amounts differ by roughly an order of magnitude. If amount remains null, keep the item for per-100g nutrition and keto analysis; only consumed totals require user amount.
 
 Use `g` for solid food and `ml` for liquids.
 
@@ -201,7 +233,7 @@ For product/package/product-card/nutrition-label images, identify the food produ
 
 Use a generic food name as `item_name` rather than a brand-heavy product title. Preserve useful visible package details only as short cues when they matter for nutrition lookup.
 
-When visible, use package net weight or capacity as the item amount and set `amount_source = "package_label"`. If the amount is not readable but the package size is visually clear enough, provide a rough visual estimate and set `amount_source = "visual_estimate"`.
+Read the package label before simplifying the product name. Use package net weight or capacity only when a quantity is visibly associated with a mass or volume unit such as `g`, `kg`, `oz`, `lb`, `ml`, or `L`; then set `amount_source = "package_label"`. Never treat a price, date, serving count, calorie value, or other unitless number as package weight. If no labeled weight is readable but the edible contents and package scale are visually clear enough, provide a rough central estimate and set `amount_source = "visual_estimate"`; otherwise leave amount missing.
 
 If the edible product is recognized but no amount can be read or reasonably estimated, still output the product item with a missing amount. Do not fail the whole image intake solely because one recognized product lacks amount. The business system should collect the missing amount from the user and continue nutrition calculation for items that already have valid amounts.
 
