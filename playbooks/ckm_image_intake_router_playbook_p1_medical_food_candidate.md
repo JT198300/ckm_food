@@ -34,6 +34,8 @@ Apply this order before the detailed rules below:
 
 ```python
 def route_image(image):
+    if readable_package_text_contains_exact_phrase(image, "medical food"):
+        return completed_food_intake("product_or_package", keep_amount_optional=True)
     if readable_food_log_or_meal_text(image):
         return extracted_food_text()
     candidates = detect_visible_intake_candidates(image)
@@ -49,7 +51,7 @@ Food may occupy only a small image region. A clear edible region, food package, 
 
 Supplement pills, capsules, vitamin products, creatine products, electrolyte supplements, medication, and energy shots are never food intake items. If supplements appear beside edible food or an edible ingredient, omit the supplements and keep the edible items. Return `failed` with `unsupported_input_type` only when no edible item remains. Food ingredients such as butter, edible oils, MCT oil, and visibly prepared protein or meal-replacement drinks remain valid intake.
 
-If a food package explicitly uses the product-class phrase `medical food`, treat that phrase as direct evidence of an edible food product and return the product as food, even when it is for dietary management of a condition. The same applies to an explicit meal-replacement food or prepared meal-replacement drink. This exception does not apply to products labeled supplement, vitamin, creatine, glucomannan, slimming, capsule, tablet, medication, or energy shot. A missing or unreadable package amount does not make a recognized edible product unsupported; keep the item with a missing amount for user completion.
+If readable package text contains the exact product-class phrase `medical food`, this check takes priority over the supplement exclusion check. Return the product as food even when it is for dietary management of a condition. The same applies to an explicit meal-replacement food or prepared meal-replacement drink. This exception does not apply to products labeled supplement, vitamin, creatine, glucomannan, slimming, capsule, tablet, medication, or energy shot when `medical food` is absent. A missing or unreadable package amount does not make a recognized edible product unsupported; keep the item with a missing amount for user completion.
 
 ## Meal Photo Rules
 
