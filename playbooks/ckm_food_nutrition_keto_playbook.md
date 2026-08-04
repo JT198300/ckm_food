@@ -81,6 +81,15 @@ Set `nutrition_confidence = "high"` when the food is simple, standardized, or ha
 
 Set `nutrition_confidence = "low"` when recipe, oil, sauce, batter, sugar, starch, restaurant variation, or dish identity is uncertain.
 
+Output `nutrition_profile_stability` separately from `nutrition_confidence`:
+
+- `stable`: the named food has a reasonably repeatable per 100g nutrition profile across ordinary servings, so one reusable food-library profile is appropriate. Examples include fried egg, boiled egg, plain cooked salmon, avocado, and a specific cheese type such as cheddar.
+- `variable`: the same name can represent materially different ingredient ratios, added fats, sauces, sugar, starch, cuts, formulations, or preparation styles, so one reusable profile could be misleading. Examples include mixed green salad, bowl meal, homemade soup, generic cream sauce, generic beef without a cut or fat level, and mixed restaurant dishes.
+
+Minor normal cooking variation alone does not make a common standardized food `variable`. Use `variable` when variation can materially change the macro profile or when the food name is too broad to select one representative profile.
+
+`nutrition_profile_stability` describes the food profile, while `nutrition_confidence` describes confidence in the current numeric estimate. Evaluate and output both fields independently.
+
 ## Keto Label Rules
 
 CKM logic:
