@@ -8,6 +8,33 @@ The image router receives one or more images and must decide whether the images 
 
 Do not generate nutrition values, keto labels, carb impact, or food database records.
 
+## Food Category
+
+Assign exactly one `food_category` to every returned intake item. This field is a stable icon/index key, not a substitute for `item_name` and not a reason to make the food name more generic.
+
+Use only these 18 values, mapped from `03_大类Icon分类` in `高频食物_通用食物分类版.xlsx`:
+
+- `eggs`: Eggs / 蛋类
+- `milk_and_dairy`: Milk & Dairy / 奶及乳制品
+- `meat`: Meat / 肉类
+- `fish_and_seafood`: Fish & Seafood / 鱼类及海鲜
+- `beans_and_soy`: Beans & Soy / 豆类及豆制品
+- `vegetables`: Vegetables / 蔬菜
+- `fruit`: Fruit / 水果
+- `rice_and_grains`: Rice & Grains / 米饭及谷物
+- `noodles_and_pasta`: Noodles & Pasta / 面条及意面
+- `bread_and_flatbread`: Bread & Flatbread / 面包及饼类
+- `potatoes_and_starchy_roots`: Potatoes & Starchy Roots / 薯类
+- `nuts_and_seeds`: Nuts & Seeds / 坚果及种子
+- `salad`: Salad / 沙拉
+- `soup_stew_and_mixed_meals`: Soup, Stew & Mixed Meals / 汤、炖菜及混合餐
+- `snacks_and_desserts`: Snacks & Desserts / 零食及甜点
+- `drinks`: Drinks / 饮品
+- `condiments_and_oils`: Condiments & Oils / 调味品及油脂
+- `other_food`: Other Food / 其他食物
+
+Classify by the practical identity of the returned item. Use `salad` for named salads and `soup_stew_and_mixed_meals` for cohesive mixed dishes that do not belong to a more specific category. Use `other_food` only when no listed category is defensible. Do not change item boundaries, confidence, or nutrition cues merely to fit a category.
+
 ## Output Modes
 
 Return exactly one top-level routing result:
