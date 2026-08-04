@@ -90,6 +90,8 @@ Minor normal cooking variation alone does not make a common standardized food `v
 
 `nutrition_profile_stability` describes the food profile, while `nutrition_confidence` describes confidence in the current numeric estimate. Evaluate and output both fields independently.
 
+Do not copy or mechanically downgrade `nutrition_confidence` from the upstream `recognition_confidence`. The business system evaluates recognition confidence separately. For a specific stable food name such as `boiled egg`, nutrition confidence should remain high even when upstream recognition confidence is low. For a broad variable name such as `cooked beef` without a cut or fat level, nutrition confidence should be low unless reliable subtype, recipe, brand, or formulation details make the numeric estimate specific.
+
 ## Keto Label Rules
 
 CKM logic:
