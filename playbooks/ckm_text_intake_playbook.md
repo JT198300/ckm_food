@@ -19,7 +19,7 @@ Do not generate nutrition values, keto labels, carb impact, or food database rec
 
 Assign exactly one `food_category` to every returned intake item. The category is a stable icon/index key and must not replace or simplify the extracted food name.
 
-Use only these 18 values, mapped from `03_大类Icon分类` in `高频食物_通用食物分类版.xlsx`:
+Use only these 17 business categories, mapped from `03_大类Icon分类` in `高频食物_通用食物分类版.xlsx`:
 
 - `eggs`: Eggs / 蛋类
 - `milk_and_dairy`: Milk & Dairy / 奶及乳制品
@@ -38,9 +38,61 @@ Use only these 18 values, mapped from `03_大类Icon分类` in `高频食物_通
 - `snacks_and_desserts`: Snacks & Desserts / 零食及甜点
 - `drinks`: Drinks / 饮品
 - `condiments_and_oils`: Condiments & Oils / 调味品及油脂
-- `other_food`: Other Food / 其他食物
 
-Classify the returned item itself. Use `salad` for named salads and `soup_stew_and_mixed_meals` for cohesive mixed dishes that do not belong to a more specific category. Use `other_food` only when no listed category is defensible. Do not alter item boundaries or food specificity merely to fit a category.
+Classify the returned item itself. Use `salad` for named salads and `soup_stew_and_mixed_meals` for cohesive mixed dishes that do not belong to a more specific category. Every edible item must use the closest defensible business category. `Other Food` is an internal fallback icon in the source workbook, not a runtime output value. Do not alter item boundaries or food specificity merely to fit a category.
+
+## Post-Extraction Name Normalization
+
+Extract the food identity, major ingredients, preparation, and amount from the user text before consulting this vocabulary. Then normalize only semantically compatible wording.
+
+Rules:
+
+- Never remove a user-stated ingredient or preparation detail to match a preferred name.
+- Preserve every major ingredient that materially changes nutrition. For example, `mixed green salad with cheese` and `mixed green salad with chicken` remain different names.
+- If no family fits, keep a concise practical name derived from the text.
+- Treat the conservative canonical name families below as lowercase `normalized_name` values used for lookup and matching.
+- Output `item_name` as frontend-facing English in sentence case while preserving conventional capitalization such as `MCT oil`.
+
+Canonical name families:
+
+- `fried eggs` <- fried egg; sunny-side-up egg; sunny-side-up eggs
+- `scrambled eggs` <- scrambled egg
+- `boiled eggs` <- boiled egg; hard-boiled egg; hard-boiled eggs
+- `avocado` <- avocado half; avocado slices; sliced avocado
+- `green olives` <- green olive
+- `red bell pepper` <- red bell peppers; sliced red bell pepper
+- `cherry tomatoes` <- cherry tomato
+- `tomato` <- tomatoes; tomato slices; sliced tomato
+- `lettuce` <- lettuce leaves
+- `red onion` <- red onion slices; sliced red onion
+- `onion` <- onion slices; sliced onion
+- `radishes` <- radish; radish slices; sliced radishes
+- `spinach` <- spinach leaves
+- `celery` <- celery sticks
+- `cucumber` <- cucumber slices; sliced cucumber; raw cucumber
+- `carrots` <- carrot; carrot slices; sliced carrots
+- `strawberries` <- strawberry
+- `blueberries` <- blueberry
+- `raspberries` <- raspberry
+- `blackberries` <- blackberry
+- `butter` <- butter pat; butter pats
+- `cottage cheese` <- cottage cheese curds
+- `feta cheese` <- feta
+- `mayonnaise` <- mayo
+- `mct oil` <- MCT oil
+- `olive oil` <- extra virgin olive oil; EVOO
+- `walnuts` <- walnut
+- `pecans` <- pecan
+- `hazelnuts` <- hazelnut
+- `white rice` <- cooked white rice; steamed white rice
+- `toast` <- toasted bread
+- `grilled chicken breast` <- grilled chicken breasts
+- `pork chops` <- pork chop
+- `crab` <- crab meat
+- `sardines` <- sardine
+- `french fries` <- fries
+
+These mappings normalize only wording, number, or presentation state. Preserve modifiers such as `with cheese`, `with chicken`, `breaded`, `battered`, `fried`, `roasted`, `smoked`, `sweetened`, `in oil`, `with dressing`, and `with cream sauce`. Do not map a food into a family merely because it belongs to the same category.
 
 ## Output Contract
 

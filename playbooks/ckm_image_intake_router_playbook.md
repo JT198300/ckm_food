@@ -12,7 +12,7 @@ Do not generate nutrition values, keto labels, carb impact, or food database rec
 
 Assign exactly one `food_category` to every returned intake item. This field is a stable icon/index key, not a substitute for `item_name` and not a reason to make the food name more generic.
 
-Use only these 18 values, mapped from `03_大类Icon分类` in `高频食物_通用食物分类版.xlsx`:
+Use only these 17 business categories, mapped from `03_大类Icon分类` in `高频食物_通用食物分类版.xlsx`:
 
 - `eggs`: Eggs / 蛋类
 - `milk_and_dairy`: Milk & Dairy / 奶及乳制品
@@ -31,9 +31,8 @@ Use only these 18 values, mapped from `03_大类Icon分类` in `高频食物_通
 - `snacks_and_desserts`: Snacks & Desserts / 零食及甜点
 - `drinks`: Drinks / 饮品
 - `condiments_and_oils`: Condiments & Oils / 调味品及油脂
-- `other_food`: Other Food / 其他食物
 
-Classify by the practical identity of the returned item. Use `salad` for named salads and `soup_stew_and_mixed_meals` for cohesive mixed dishes that do not belong to a more specific category. Use `other_food` only when no listed category is defensible. Do not change item boundaries, confidence, or nutrition cues merely to fit a category.
+Classify by the practical identity of the returned item. Use `salad` for named salads and `soup_stew_and_mixed_meals` for cohesive mixed dishes that do not belong to a more specific category. Every edible item must use the closest defensible business category. `Other Food` is an internal fallback icon in the source workbook, not a runtime output value. Do not change item boundaries, confidence, or nutrition cues merely to fit a category.
 
 ## Output Modes
 
@@ -113,9 +112,11 @@ Subtype specificity rule:
 Low-confidence visual cue rule:
 
 - When `recognition_confidence = "low"` because the food name may be incomplete or visually uncertain, add `nutrition_relevant_cues`.
+- When `recognition_confidence = "high"`, return `nutrition_relevant_cues = []` unless a visible preparation, formulation, sauce, coating, or subtype detail not already present in the food name could materially change the per-100g nutrition estimate.
 - Cues are concise visual facts for the nutrition stage, not explanations for the user.
 - Use max 2 cues per item, each ideally under 8 words.
 - Cues should describe visible texture, preparation, composition, or packaging without asserting an unsupported identity.
+- Do not use cues for item count, color, plating position, ordinary doneness, garnish, or evidence that merely repeats the item name. Examples that must not be cues for a high-confidence `Fried eggs` item include `two fried eggs`, `visible yolks`, and `runny yolks`.
 - Do not add long descriptions. Do not estimate nutrition in cues.
 
 Identity uncertainty rule:
@@ -133,12 +134,12 @@ Rules:
 - Never invent evidence or change item boundaries to match a preferred name.
 - Preserve a subtype or state that materially changes carbs, fat, processing, or fatty-acid interpretation.
 - If no family fits, keep the image-derived practical name.
-- Use `eggs`, `meat patty`, or `fish sashimi` when preparation, animal species, or fish species is not reliable; do not guess a more specific family.
-- Use `mixed green salad` only for predominantly raw leafy greens, never for cooked cabbage or meat-and-vegetable mixtures.
+- Use a practical generic food identity when subtype evidence is unreliable, but do not force that generic name into the canonical vocabulary below.
+- Preserve every visible or text-supported major ingredient that materially changes nutrition. For example, use `mixed green salad with cheese` and `mixed green salad with chicken`, not `mixed green salad`, when those additions are evident.
 - When cheese is attached as a topping and its separate mass is unreliable, keep patty and cheese as one `... patty with cheese` item. Group repeated identical patties into one item with total amount. Never double-count a parent item and its topping.
 - Cheese subtypes are intentionally absent. Preserve the image-derived cheese subtype; never collapse different cheeses into generic `cheese` because their nutrition differs.
 - Keep breaded, battered, sweetened, smoked, cream-sauced, or dressing-added evidence in the name or concise nutrition cues.
-- Treat the canonical name families below as lowercase `normalized_name` values used for lookup and matching.
+- Treat the conservative canonical name families below as lowercase `normalized_name` values used for lookup and matching.
 - Output `item_name` as a frontend-facing English name using sentence case: capitalize the first word, not every word.
 - Preserve conventional capitalization for proper names and acronyms, such as `Greek yogurt`, `Caesar salad`, `Brussels sprouts`, `MCT oil`, and `BLT sandwich`.
 - Do not use Title Case for every word. Prefer `Grilled chicken salad`, not `Grilled Chicken Salad`.
@@ -146,31 +147,44 @@ Rules:
 
 Canonical name families:
 
-- `eggs` <- generic or whole eggs
-- `fried eggs` <- fried egg; sunny-side-up egg
-- `boiled eggs` <- boiled egg; hard-boiled egg
+- `fried eggs` <- fried egg; sunny-side-up egg; sunny-side-up eggs
 - `scrambled eggs` <- scrambled egg
-- `mixed green salad` <- green salad; garden salad; mixed greens
-- `mixed berries` <- mixed frozen berries; frozen mixed berries
-- `meat patty` <- generic patty when species is unclear
-- `beef patty` <- burger patty; hamburger patty; ground beef patty
-- `meat patty with cheese` <- generic meat patty topped with attached cheese
-- `beef patty with cheese` <- cheeseburger patty; beef patty topped with attached cheese
-- `cucumber` <- cucumber slices; raw cucumber
-- `ham` <- cooked ham; sliced ham
-- `bacon` <- cooked bacon; fried bacon
-- `sausage` <- sausages; grilled sausage
-- `fish sashimi` <- assorted sashimi; sashimi platter with uncertain fish species
-- `smoked salmon` <- smoked salmon slices
-- `cooked salmon` <- grilled salmon; baked salmon; roasted salmon
-- `chicken breast` <- cooked chicken breast; grilled chicken breast
-- `avocado` <- avocado half; sliced avocado
-- `broccoli` <- broccoli florets; cooked broccoli; steamed broccoli
-- `cauliflower` <- cauliflower florets; cooked cauliflower
-- `brussels sprouts` <- brussels sprout; roasted brussels sprouts
-- `mushrooms` <- mushroom; cooked mushrooms; sauteed mushrooms
-- `green beans` <- green bean; cooked green beans
-- `zucchini` <- cooked zucchini; roasted zucchini; sauteed zucchini
+- `boiled eggs` <- boiled egg; hard-boiled egg; hard-boiled eggs
+- `avocado` <- avocado half; avocado slices; sliced avocado
+- `green olives` <- green olive
+- `red bell pepper` <- red bell peppers; sliced red bell pepper
+- `cherry tomatoes` <- cherry tomato
+- `tomato` <- tomatoes; tomato slices; sliced tomato
+- `lettuce` <- lettuce leaves
+- `red onion` <- red onion slices; sliced red onion
+- `onion` <- onion slices; sliced onion
+- `radishes` <- radish; radish slices; sliced radishes
+- `spinach` <- spinach leaves
+- `celery` <- celery sticks
+- `cucumber` <- cucumber slices; sliced cucumber; raw cucumber
+- `carrots` <- carrot; carrot slices; sliced carrots
+- `strawberries` <- strawberry
+- `blueberries` <- blueberry
+- `raspberries` <- raspberry
+- `blackberries` <- blackberry
+- `butter` <- butter pat; butter pats
+- `cottage cheese` <- cottage cheese curds
+- `feta cheese` <- feta
+- `mayonnaise` <- mayo
+- `mct oil` <- MCT oil
+- `olive oil` <- extra virgin olive oil; EVOO
+- `walnuts` <- walnut
+- `pecans` <- pecan
+- `hazelnuts` <- hazelnut
+- `white rice` <- cooked white rice; steamed white rice
+- `toast` <- toasted bread
+- `grilled chicken breast` <- grilled chicken breasts
+- `pork chops` <- pork chop
+- `crab` <- crab meat
+- `sardines` <- sardine
+- `french fries` <- fries
+
+These mappings normalize only wording, number, or presentation state. They never remove a nutrition-relevant modifier. Preserve modifiers such as `with cheese`, `with chicken`, `breaded`, `battered`, `fried`, `roasted`, `smoked`, `sweetened`, `in oil`, `with dressing`, and `with cream sauce`. Do not map a food into a family merely because it is visually similar or belongs to the same category.
 
 Double-counting rule:
 
