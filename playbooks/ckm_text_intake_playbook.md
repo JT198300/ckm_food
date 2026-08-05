@@ -194,6 +194,10 @@ Set `recognition_confidence = "low"` when:
 
 Low confidence is not a failure when the output contract is complete.
 
+## Nutrition-Relevant Cues
+
+Use `nutrition_relevant_cues` only for a short nutrition-relevant detail that cannot be represented reliably in the practical food name. If an explicit ingredient, preparation, sauce, coating, or formulation is already present in `item_name` and `normalized_name`, do not repeat it in cues. Do not use item count, quoted amount, or the food name itself as a cue. For explicit, high-confidence text with a sufficiently specific food name, return `nutrition_relevant_cues = []`.
+
 ## Error Codes
 
 The validation code may return:

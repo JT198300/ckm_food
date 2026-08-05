@@ -136,6 +136,7 @@ Rules:
 - If no family fits, keep the image-derived practical name.
 - Use a practical generic food identity when subtype evidence is unreliable, but do not force that generic name into the canonical vocabulary below.
 - Preserve every visible or text-supported major ingredient that materially changes nutrition. For example, use `mixed green salad with cheese` and `mixed green salad with chicken`, not `mixed green salad`, when those additions are evident.
+- Before naming a variable mixed food such as a salad, bowl, soup, sandwich, or pizza, inspect it for clearly visible nutrition-driving components. Include substantial meat, fish, egg, cheese, avocado, nuts, seeds, croutons, grains, or starchy additions in the name. Do not lengthen the name with every minor low-impact vegetable.
 - When cheese is attached as a topping and its separate mass is unreliable, keep patty and cheese as one `... patty with cheese` item. Group repeated identical patties into one item with total amount. Never double-count a parent item and its topping.
 - Cheese subtypes are intentionally absent. Preserve the image-derived cheese subtype; never collapse different cheeses into generic `cheese` because their nutrition differs.
 - Keep breaded, battered, sweetened, smoked, cream-sauced, or dressing-added evidence in the name or concise nutrition cues.
@@ -150,6 +151,7 @@ Canonical name families:
 - `fried eggs` <- fried egg; sunny-side-up egg; sunny-side-up eggs
 - `scrambled eggs` <- scrambled egg
 - `boiled eggs` <- boiled egg; hard-boiled egg; hard-boiled eggs
+- `mixed green salad` <- green salad; garden salad; mixed greens, but only when no clearly visible nutrition-driving addition needs to be retained in the name
 - `avocado` <- avocado half; avocado slices; sliced avocado
 - `green olives` <- green olive
 - `red bell pepper` <- red bell peppers; sliced red bell pepper
