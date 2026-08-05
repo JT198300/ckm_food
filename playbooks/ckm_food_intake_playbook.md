@@ -43,6 +43,16 @@ For a named dish, output the dish as one item unless decomposition is explicitly
 
 Dish-first does not mean generic. Keep the food name specific enough for nutrition lookup when the image or text supports it. Do not generalize visually specific foods into broad categories such as `meat`, `fish dish`, `vegetable side`, or `dessert` when a more practical lookup name is supported.
 
+Dish-first also does not mean blanket merging. First determine whether the food is a cohesive dish or physically distinct foods. Keep food combined by cooking, mixing, filling, wrapping, baking, or assembly as one dish. If its name is too generic for nutrition estimation, make the name more specific and use concise `nutrition_relevant_cues`; do not split integrated ingredients merely because their nutrition profiles differ. Avoid presentation-only names such as `bowl meal`, `mixed meal`, `plate meal`, or `small bowls of vegetables and meat` when a practical dish name or physically distinct foods are visible.
+
+Use the downstream nutrition test to decide whether a proposed item is specific enough:
+
+- If the image or text describes physically distinct, separately consumed or separately portioned foods, split them into separate items.
+- A named cohesive dish stays as one item, including `tomato scrambled eggs`, `cheeseburger`, `pepperoni pizza`, `omelet`, `lasagna`, `curry`, `soup`, or `chicken Caesar salad`.
+- Retain at most one or two defining nutrition drivers in the dish name and put remaining material details not already expressed by the name into concise cues.
+- A separable plate, platter, tray, or meal set is not a cohesive dish. Do not merge separate foods into names such as `egg breakfast plate`, `ham steak with eggs and vegetables`, `seared beef with fried eggs and brussels sprouts`, or `keto meal plate`.
+- When identity is uncertain but the food is visibly separate, keep it separate with a practical best-guess name and low confidence. Do not merge it into the nearest clear food.
+
 Examples:
 
 - If the image likely shows a cheeseburger, output `cheeseburger` as one dish.
@@ -50,6 +60,15 @@ Examples:
 - If the image likely shows pepperoni pizza, output `pepperoni pizza` as one dish.
 - If the image shows clearly separated grilled steak, asparagus, and mashed potatoes, output separate items.
 - If the image shows a barbecue platter, buffet plate, sashimi platter, or mixed visible components, use `meal_set` or separate items depending on visual separation.
+- If the image shows steak, vegetables, cheese, and sauce as visible separate components, output separate items with separate amounts.
+- If the image shows a breakfast plate with fried eggs, ham or cured pork, roasted Brussels sprouts, bacon-wrapped sausage/appetizer, and roasted dark vegetables, output separate items with separate amounts. Use low confidence for ambiguous meat or vegetable identity, but do not output only `egg breakfast plate`.
+- If a soup contains visible pork, eggs, or vegetables, keep it as one soup dish and retain the defining components in the name or concise cues.
+
+Do not over-split subtypes that cannot be reliably identified from the image or text and are not needed for downstream nutrition:
+
+- For sashimi or raw fish platters, output `assorted fish sashimi` or `fish sashimi` as one edible fish item unless the fish species are explicit in text or unmistakable visually.
+- Do not split sashimi into `salmon sashimi`, `tuna sashimi`, and `white fish sashimi` based only on color or shape when the species are uncertain.
+- Wasabi, pickled ginger, soy sauce, and garnish may be separate small items only when visible and likely consumed; otherwise omit them or keep them low confidence.
 
 ## Item Types
 

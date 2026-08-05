@@ -85,20 +85,36 @@ Determine intended intake scope before extracting items. Prioritize food that is
 
 Prefer dish-level recognition before ingredient-level decomposition, but keep names specific enough for nutrition lookup.
 
-Dish-first is not blanket merging. If a dish name is too broad, too complex, or too generic for the downstream nutrition stage to query or estimate, split the visible food into the smallest practical nutrition-calculable units.
+First decide the practical nutrition unit. Do not use the number of ingredients alone to decide item boundaries:
 
-Do not output a presentation-level name when the image supports more specific nutrition-calculable items and amounts.
+- A cohesive dish is food combined by cooking, mixing, filling, wrapping, baking, or assembly into one commonly consumed unit. Keep it as one dish even when it contains multiple ingredients. Examples include tomato scrambled eggs, ham and cheese omelet, chicken curry, cheeseburger, lasagna, pizza, soup, and chicken salad with avocado.
+- Physically distinct foods that can be separately eaten and roughly portioned remain separate items. Examples include steak with mushrooms and a side salad, salmon with broccoli and rice, or eggs with bacon and avocado.
+- Presentation on one plate does not make separate foods one dish, and multiple ingredients inside a cohesive dish do not require ingredient decomposition.
 
-Use the downstream nutrition test to decide whether to split or merge:
+Apply this general decision procedure:
 
-- If one item would require averaging clearly different nutrition profiles, split it.
-- If the image shows visible boundaries between major food groups, split them into separate items.
-- A named cohesive dish can stay as one item only when it has a stable nutrition lookup candidate.
-- A cohesive mixed dish name or its short cues must retain any clearly visible dominant component that materially changes the nutrition estimate. Do not use a narrower dish name that silently omits such a component.
+```python
+for food_region in intended_meal:
+    if physically_distinct_food_units(food_region):
+        output_each_unit_once()
+    else:
+        dish = identify_cohesive_dish(food_region)
+        drivers = visible_nutrition_drivers(dish)
+        dish.item_name = retain_most_defining_drivers(dish.item_name, drivers, limit=2)
+        dish.nutrition_relevant_cues = retain_unexpressed_material_drivers(drivers, limit=2)
+        output_dish_once()
+assert no_parent_component_double_counting()
+```
+
+Nutrition-driving details include a dominant protein, major starch or grain base, high-fat addition, substantial cheese, avocado, nuts or seeds, creamy or oil-heavy sauce, breading or batter, and another preparation detail that materially changes the expected nutrition profile.
+
+- If a cohesive dish name is too generic for downstream nutrition estimation, make the dish name more specific and put remaining material details in concise cues. Do not split its integrated ingredients merely to make nutrition estimation easier.
+- Keep the frontend name concise: dish identity plus at most one or two defining nutrition drivers. Put only material details not already expressed by the name into cues.
+- When a material component is visible but its exact identity is uncertain, retain a factual visual cue and use low confidence instead of silently omitting it or inventing a subtype.
 - A separable plate, platter, tray, or meal set is not a cohesive dish merely because it is presented together.
 - When identity is uncertain but the food is visibly separate, keep it separate with a practical best-guess name and low confidence. Do not merge it into the nearest clear food.
 - Before returning a meal photo result, do a coverage check by plate zone. Do not omit a visible major edible cluster just because its identity is uncertain.
-- If adjacent clusters have materially different nutrition profiles, output both separately rather than choosing only one.
+- Express each visible food mass exactly once. Never output both a cohesive dish and the same integrated ingredients as separate items.
 
 Subtype specificity rule:
 
@@ -136,7 +152,7 @@ Rules:
 - If no family fits, keep the image-derived practical name.
 - Use a practical generic food identity when subtype evidence is unreliable, but do not force that generic name into the canonical vocabulary below.
 - Preserve every visible or text-supported major ingredient that materially changes nutrition. For example, use `mixed green salad with cheese` and `mixed green salad with chicken`, not `mixed green salad`, when those additions are evident.
-- Before naming a variable mixed food such as a salad, bowl, soup, sandwich, or pizza, inspect it for clearly visible nutrition-driving components. Include substantial meat, fish, egg, cheese, avocado, nuts, seeds, croutons, grains, or starchy additions in the name. Do not lengthen the name with every minor low-impact vegetable.
+- Before naming any cohesive mixed food, inspect it for clearly visible nutrition-driving components. Keep the dish as one item; include at most one or two defining components in the name and put remaining material details not already expressed by the name into concise cues. Do not lengthen the name with every minor low-impact ingredient.
 - When cheese is attached as a topping and its separate mass is unreliable, keep patty and cheese as one `... patty with cheese` item. Group repeated identical patties into one item with total amount. Never double-count a parent item and its topping.
 - Cheese subtypes are intentionally absent. Preserve the image-derived cheese subtype; never collapse different cheeses into generic `cheese` because their nutrition differs.
 - Keep breaded, battered, sweetened, smoked, cream-sauced, or dressing-added evidence in the name or concise nutrition cues.
@@ -192,7 +208,7 @@ Double-counting rule:
 
 - Do not output both a cohesive dish and its visible ingredients when that would double-count the same food mass.
 - If a food should stay as one dish, output the dish only and put important visible preparation cues in `nutrition_relevant_cues`.
-- If a food is too broad for nutrition calculation, split it into practical items and do not also output the broad parent item.
+- If foods are physically distinct, output the practical food units and do not also output a broad parent plate or meal item.
 
 Examples:
 

@@ -113,15 +113,17 @@ Extract food names, dish names, meal sections, quantities, units, and text spans
 
 Prefer dish-level recognition before ingredient-level decomposition, but keep names specific enough for nutrition lookup.
 
-For a named dish, output the dish as one item unless the text clearly lists separate foods or amounts.
+For a named cohesive dish, output the dish as one item. Do not split its integrated ingredients merely because they have different nutrition profiles. Tomato scrambled eggs, ham and cheese omelet, chicken curry, cheeseburger, lasagna, pizza, soup, and chicken salad with avocado are each one dish when described as such.
 
-Use the same general nutrition-granularity test across all food categories:
+Use the same practical nutrition-unit test across all food categories:
 
-- Keep a cohesive named dish when it is a stable nutrition lookup candidate.
-- Split explicitly listed foods, separately quantified components, or broad combinations that would otherwise average materially different nutrition profiles.
+- Split foods only when the text presents them as independently eaten, independently portioned, or separately quantified foods, such as steak with mushrooms and a side salad.
+- Keep ingredients combined by cooking, mixing, filling, wrapping, baking, or assembly as one dish.
+- If a cohesive dish name is too generic for nutrition estimation, retain at most one or two defining nutrition drivers in the name and put remaining material details not already expressed by the name into concise cues.
+- Nutrition drivers include dominant protein, major starch or grain base, high-fat additions, substantial cheese, avocado, nuts or seeds, creamy or oil-heavy sauces, breading or batter, and preparation details that materially change nutrition.
 - Output a subtype only when it materially changes nutrition or keto interpretation and the text provides enough evidence.
 - When subtype evidence is insufficient, use a useful generic class rather than guessing.
-- Do not output both a parent dish and its component foods when that double-counts the same intake.
+- Do not output both a parent dish and its integrated ingredients when that double-counts the same intake.
 - Do not add category-specific extraction rules in response to individual benchmark failures.
 
 Use a practical generic food or dish name rather than a brand-heavy product title. Preserve preparation or subtype in the name only when it materially affects nutrition; retain secondary visible or stated details in concise context fields when available.
