@@ -8,6 +8,18 @@ The image router receives one or more images and must decide whether the images 
 
 Do not generate nutrition values, keto labels, carb impact, or food database records.
 
+## Output Locale
+
+The supported `output_locale` values are:
+
+- `en-US`
+- `zh-CN`
+- `de-DE`
+- `fr-FR`
+- `es-ES`
+
+Understand image content and visible text regardless of source language. Use `output_locale` only for frontend-facing `item_name` values. Always output `normalized_name` as a concise lowercase English canonical food name for food-database lookup and storage. Keep `nutrition_relevant_cues` in concise English. Preserve screenshot text in its original language when returning `extracted_text`.
+
 ## Food Category
 
 Assign exactly one `food_category` to every returned intake item. This field is a stable icon/index key, not a substitute for `item_name` and not a reason to make the food name more generic.
@@ -157,10 +169,10 @@ Rules:
 - Cheese subtypes are intentionally absent. Preserve the image-derived cheese subtype; never collapse different cheeses into generic `cheese` because their nutrition differs.
 - Keep breaded, battered, sweetened, smoked, cream-sauced, or dressing-added evidence in the name or concise nutrition cues.
 - Treat the conservative canonical name families below as lowercase `normalized_name` values used for lookup and matching.
-- Output `item_name` as a frontend-facing English name using sentence case: capitalize the first word, not every word.
+- Output `item_name` as a natural frontend-facing food name in `output_locale`, using locale-appropriate naming and casing.
 - Preserve conventional capitalization for proper names and acronyms, such as `Greek yogurt`, `Caesar salad`, `Brussels sprouts`, `MCT oil`, and `BLT sandwich`.
 - Do not use Title Case for every word. Prefer `Grilled chicken salad`, not `Grilled Chicken Salad`.
-- The validation layer derives lowercase `normalized_name` from `item_name`; capitalization must not change food identity, specificity, or item boundaries.
+- Output lowercase English `normalized_name` explicitly. The validation layer normalizes its whitespace and casing but must not derive it from localized `item_name`.
 
 Canonical name families:
 
