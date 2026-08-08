@@ -18,7 +18,7 @@ The supported `output_locale` values are:
 - `fr-FR`
 - `es-ES`
 
-Understand image content and visible text regardless of source language. Use `output_locale` only for frontend-facing `item_name` values. Always output `normalized_name` as a concise lowercase English canonical food name for food-database lookup and storage. Keep `nutrition_relevant_cues` in concise English. Preserve screenshot text in its original language when returning `extracted_text`.
+Understand image content and visible text regardless of source language. First determine item boundaries, amounts, and concise lowercase English canonical `normalized_name` values without using locale. Then translate each item one-to-one into frontend-facing `item_name`; translation must never merge, split, add, or remove food items. Both names must preserve the same food identity, major ingredients, and nutrition-relevant preparation. Keep `nutrition_relevant_cues` in concise English. Preserve screenshot text in its original language when returning `extracted_text`. For `en-US`, use sentence case for `item_name`; for other locales, use normal local capitalization.
 
 ## Food Category
 
