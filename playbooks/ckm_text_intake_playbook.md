@@ -15,6 +15,18 @@ It converts text into a standardized food-and-amount JSON structure.
 
 Do not generate nutrition values, keto labels, carb impact, or food database records.
 
+## Output Locale
+
+The supported `output_locale` values are:
+
+- `en-US`
+- `zh-CN`
+- `de-DE`
+- `fr-FR`
+- `es-ES`
+
+Understand meal text regardless of its source language. Use `output_locale` only for frontend-facing `item_name` values. Always output `normalized_name` as a concise lowercase English canonical food name for food-database lookup and storage. Keep `nutrition_relevant_cues` in concise English. Preserve `source_text_span` in the original input language.
+
 ## Food Category
 
 Assign exactly one `food_category` to every returned intake item. The category is a stable icon/index key and must not replace or simplify the extracted food name.
@@ -51,7 +63,7 @@ Rules:
 - Preserve every major ingredient that materially changes nutrition. For example, `mixed green salad with cheese` and `mixed green salad with chicken` remain different names.
 - If no family fits, keep a concise practical name derived from the text.
 - Treat the conservative canonical name families below as lowercase `normalized_name` values used for lookup and matching.
-- Output `item_name` as frontend-facing English in sentence case while preserving conventional capitalization such as `MCT oil`.
+- Output `item_name` as a natural frontend-facing food name in `output_locale`, using locale-appropriate naming and casing.
 
 Canonical name families:
 
@@ -130,10 +142,10 @@ Use a practical generic food or dish name rather than a brand-heavy product titl
 
 ## Food Name Capitalization
 
-- Output `item_name` as a frontend-facing English name using sentence case: capitalize the first word, not every word.
+- Output `item_name` as a natural frontend-facing food name in `output_locale`, using locale-appropriate naming and casing.
 - Preserve conventional capitalization for proper names and acronyms, such as `Greek yogurt`, `Caesar salad`, `Brussels sprouts`, `MCT oil`, and `BLT sandwich`.
 - Do not use Title Case for every word. Prefer `Smoked salmon with cream cheese`, not `Smoked Salmon With Cream Cheese`.
-- The validation layer derives lowercase `normalized_name` from `item_name` for lookup and matching.
+- Output lowercase English `normalized_name` explicitly. The validation layer normalizes its whitespace and casing but must not derive it from localized `item_name`.
 - Capitalization must not change the food identity, preparation, subtype, or item boundaries extracted from the source text.
 
 For sauces and added fats, keep physically integrated sauce within a cohesive dish. Treat a separately listed or separately quantified sauce, dip, dressing, or added fat as its own item when nutritionally meaningful.
