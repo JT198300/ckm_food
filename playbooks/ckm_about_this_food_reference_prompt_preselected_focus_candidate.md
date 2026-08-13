@@ -136,7 +136,7 @@ OUTPUT
 Exactly two short paragraphs, one blank line between them. No headings, no bullets,
 no labels, no separator lines.
 
-40-70 WORDS. HARD CEILING 75.
+40-70 WORDS. HARD CEILING 70.
 
 This sits in a small box on a phone. Past this length the block scrolls, and
 nobody scrolls a detail page. The four information points below all fit — if
