@@ -320,6 +320,92 @@ For eggs, mixed cooked dishes, or foods where the cooking fat is unknown, return
 
 Use low label confidence when nutrition confidence is low, the food is a mixed restaurant dish, fat source is unclear, or label choice depends on preparation assumptions.
 
+## About This Food Writer
+
+After an item's per-100g nutrition and Keto labels are finalized, generate a
+static food-level `about_this_food` description from those exact final fields.
+The description is cached against the food and locale. It must remain true
+regardless of serving amount, meal, user, date, or measured ketone response.
+
+### Language
+
+Write in the language selected by `output_locale`:
+
+- `en-US`: English
+- `zh-CN`: Simplified Chinese
+- `de-DE`: German
+- `fr-FR`: French
+- `es-ES`: Spanish
+
+Use the localized input `item_name` naturally. The prose must be entirely in
+the selected language except for food names that are normally borrowed and
+universal units such as g and mg. Machine enums remain English in their schema
+fields but must never appear verbatim in user-facing prose.
+
+### Evidence Boundary
+
+- Use only the item's identity, `nutrition_relevant_cues`, generated per-100g
+  nutrition, and generated labels.
+- Do not mention serving amount, the rest of a meal, user context, user goals,
+  measured ketones, or a predicted outcome for this meal or person.
+- Do not recommend, warn, praise, criticize, or call a food healthy, unhealthy,
+  good, bad, clean, junk, `keto-friendly`, or `keto-approved`.
+- Do not invent nutrients, ingredients, preparation details, or physiology.
+- Do not mention calories. Calories are computed by deterministic code after
+  this LLM call and are not authoritative evidence for this writer.
+- Do not expose implementation metadata such as confidence, stability,
+  variability, caching, reuse, references, databases, model generation, or
+  suitability for storage.
+
+### Content Contract
+
+Return exactly two short paragraphs through separate structured fields:
+
+- `paragraph_1`: position what the food is, then cite only the per-100g macro
+  facts needed to establish that position. Do not explain a label or
+  fatty-acid profile in this paragraph.
+- `paragraph_2`: explain exactly one most informative supplied label in natural
+  language, then end with exactly one neutral sentence about the role this kind
+  of food usually plays in a Keto meal.
+
+Do not put line breaks inside either field. Do not output headings, bullets,
+field names, enum names, or markdown. Do not list multiple support tiers,
+processing classes, or fatty-acid labels. Natural expressions include `rich in
+omega-3 fats`, `mostly monounsaturated fat`, and `primarily a protein food`.
+Forbidden prose includes `protein_support`, `fat_support`, `omega_3_rich`,
+`mct_rich`, `monounsaturated_rich`, `saturated_rich`, `whole_food`,
+`minimally_processed`, and translated equivalents used as product labels.
+
+### Fat-Quality Consistency
+
+- When `fat_support = "limited"`, `fatty_acid_profile` must be null and the
+  description must not state or imply omega-3-rich, MCT-rich,
+  monounsaturated-fat-rich, or saturated-fat-rich. `fat_processing` may be
+  explained only when it materially describes what the food is.
+- When `fat_support` is `moderate` or `strong`, a supported non-null
+  `fatty_acid_profile` may be explained. Do not force it into the description
+  when another supplied label is more informative.
+
+### Fiber And Micronutrients
+
+- Fiber may explain net carbohydrate when total carbohydrate and fiber are
+  present.
+- Mention at most one micronutrient and only when its per-100g value reaches:
+  potassium >= 400 mg, magnesium >= 80 mg, or sodium >= 500 mg.
+- When a micronutrient is mentioned, state its per-100g numeric value. Never
+  round up to reach a threshold. Null means omit.
+
+### Length And Final Check
+
+- `en-US`, `de-DE`, `fr-FR`, `es-ES`: target 42-60 words, hard maximum 70.
+- `zh-CN`: target 70-130 Chinese characters, hard maximum 140 Chinese
+  characters excluding punctuation.
+
+A shorter complete description is better than padded text. Before returning
+each item, verify that both paragraph fields match that same item's final
+nutrition and labels, explain only one supplied label, contain one general
+Keto-role sentence, and obey the selected language and hard length limit.
+
 ## Deterministic Validation Boundaries
 
 Use deterministic code, not LLM judgement, for:
