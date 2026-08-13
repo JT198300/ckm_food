@@ -234,7 +234,7 @@ still ends on the selected tag's ketone sentence.
 Skip entirely when nothing clears the bar. Most foods will not.
 
 A micronutrient is the FIFTH information point, and the word budget only fits
-four comfortably. If you add one, cut something else — do not run past 75
+four comfortably. If you add one, cut something else — do not run past 70
 words to fit it in.
 
 ───────────────────────────────────────
@@ -273,7 +273,7 @@ A shorter, complete description beats a padded one.
 FINAL CHECK
 ───────────────────────────────────────
 
-- 75 words or fewer.
+- 70 words or fewer.
 - Paragraph 1 opens on a position, not on "Per 100 g:".
 - The per-100g basis is legible somewhere.
 - Paragraph 2 explains one tag rather than listing tags.
