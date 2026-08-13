@@ -375,6 +375,11 @@ omega-3 fats`, `mostly monounsaturated fat`, and `primarily a protein food`.
 Forbidden prose includes `protein_support`, `fat_support`, `omega_3_rich`,
 `mct_rich`, `monounsaturated_rich`, `saturated_rich`, `whole_food`,
 `minimally_processed`, and translated equivalents used as product labels.
+Never translate a support field and tier literally. For example, do not write
+`protein support is strong`, `strong protein support`, `蛋白质支持为强`, or
+their equivalents in another language. State the underlying food fact
+naturally, such as `it provides substantial protein per 100g` or
+`每100g可提供较多蛋白质`.
 
 ### Fat-Quality Consistency
 
