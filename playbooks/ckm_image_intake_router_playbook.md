@@ -8,11 +8,25 @@ The image router receives one or more images and must decide whether the images 
 
 Do not generate nutrition values, keto labels, carb impact, or food database records.
 
+## Output Locale
+
+The supported `output_locale` values are:
+
+- `en-US`
+- `zh-CN`
+- `de-DE`
+- `fr-FR`
+- `es-ES`
+
+Understand image content and visible text regardless of source language. Treat `output_locale` as a weak cultural recognition and naming prior only when the image supports multiple similarly plausible food identities. In that limited tie-break case, prefer the common food or dish interpretation used in the requested locale. Locale must never override visible evidence, invent a cuisine or ingredient, change item boundaries, alter an amount, or increase confidence. A meal may come from any cuisine regardless of locale.
+
+Determine item boundaries, amounts, and concise lowercase English canonical `normalized_name` values from the evidence, using locale only for the tie-break above. Then render each item one-to-one as frontend-facing `item_name`; localization must never merge, split, add, or remove food items. Both names must preserve the same food identity, major ingredients, and nutrition-relevant preparation. Keep `nutrition_relevant_cues` in concise English. Preserve screenshot text in its original language when returning `extracted_text`. For `en-US`, `de-DE`, `fr-FR`, and `es-ES`, start `item_name` with an uppercase letter and use natural sentence-style casing, never Title Case for every word. Preserve required local capitalization such as German nouns. For `zh-CN`, use natural Simplified Chinese naming.
+
 ## Food Category
 
 Assign exactly one `food_category` to every returned intake item. This field is a stable icon/index key, not a substitute for `item_name` and not a reason to make the food name more generic.
 
-Use only these 17 business categories, mapped from `03_大类Icon分类` in `高频食物_通用食物分类版.xlsx`:
+Use only these 18 food categories:
 
 - `eggs`: Eggs / 蛋类
 - `milk_and_dairy`: Milk & Dairy / 奶及乳制品
@@ -31,8 +45,9 @@ Use only these 17 business categories, mapped from `03_大类Icon分类` in `高
 - `snacks_and_desserts`: Snacks & Desserts / 零食及甜点
 - `drinks`: Drinks / 饮品
 - `condiments_and_oils`: Condiments & Oils / 调味品及油脂
+- `other_food`: Other Food / 其他食物
 
-Classify by the practical identity of the returned item. Use `salad` for named salads and `soup_stew_and_mixed_meals` for cohesive mixed dishes that do not belong to a more specific category. Every edible item must use the closest defensible business category. `Other Food` is an internal fallback icon in the source workbook, not a runtime output value. Do not change item boundaries, confidence, or nutrition cues merely to fit a category.
+Classify by the practical identity of the returned item. Use `salad` for named salads and `soup_stew_and_mixed_meals` for cohesive mixed dishes that do not belong to a more specific category. Use `other_food` only when an edible item cannot be reliably assigned to any of the other 17 categories. Do not change item boundaries, confidence, or nutrition cues merely to fit a category.
 
 ## Output Modes
 
@@ -157,10 +172,10 @@ Rules:
 - Cheese subtypes are intentionally absent. Preserve the image-derived cheese subtype; never collapse different cheeses into generic `cheese` because their nutrition differs.
 - Keep breaded, battered, sweetened, smoked, cream-sauced, or dressing-added evidence in the name or concise nutrition cues.
 - Treat the conservative canonical name families below as lowercase `normalized_name` values used for lookup and matching.
-- Output `item_name` as a frontend-facing English name using sentence case: capitalize the first word, not every word.
+- Output `item_name` as a natural frontend-facing food name in `output_locale`, using locale-appropriate naming and casing.
 - Preserve conventional capitalization for proper names and acronyms, such as `Greek yogurt`, `Caesar salad`, `Brussels sprouts`, `MCT oil`, and `BLT sandwich`.
 - Do not use Title Case for every word. Prefer `Grilled chicken salad`, not `Grilled Chicken Salad`.
-- The validation layer derives lowercase `normalized_name` from `item_name`; capitalization must not change food identity, specificity, or item boundaries.
+- Output lowercase English `normalized_name` explicitly. The validation layer normalizes its whitespace and casing but must not derive it from localized `item_name`.
 
 Canonical name families:
 

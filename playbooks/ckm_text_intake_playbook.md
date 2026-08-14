@@ -15,11 +15,25 @@ It converts text into a standardized food-and-amount JSON structure.
 
 Do not generate nutrition values, keto labels, carb impact, or food database records.
 
+## Output Locale
+
+The supported `output_locale` values are:
+
+- `en-US`
+- `zh-CN`
+- `de-DE`
+- `fr-FR`
+- `es-ES`
+
+Understand meal text regardless of its source language. Treat `output_locale` as a weak cultural interpretation and naming prior only when the text supports multiple similarly plausible food identities. In that limited tie-break case, prefer the common food or dish interpretation used in the requested locale. Locale must never override an explicit food name, ingredient, preparation, amount, or source-language meaning; it must not merge or split foods or increase confidence. A meal may come from any cuisine regardless of locale.
+
+Extract item boundaries, amounts, and concise lowercase English canonical `normalized_name` values from the text, using locale only for the tie-break above. Then render each item one-to-one as frontend-facing `item_name`; localization must never merge, split, add, or remove food items. Both names must preserve the same food identity, major ingredients, and nutrition-relevant preparation stated by the user. Keep `nutrition_relevant_cues` in concise English. Preserve `source_text_span` in the original input language. For `en-US`, `de-DE`, `fr-FR`, and `es-ES`, start `item_name` with an uppercase letter and use natural sentence-style casing, never Title Case for every word. Preserve required local capitalization such as German nouns. For `zh-CN`, use natural Simplified Chinese naming.
+
 ## Food Category
 
 Assign exactly one `food_category` to every returned intake item. The category is a stable icon/index key and must not replace or simplify the extracted food name.
 
-Use only these 17 business categories:
+Use only these 18 food categories:
 
 - `eggs`: Eggs / 蛋类
 - `milk_and_dairy`: Milk & Dairy / 奶及乳制品
@@ -38,8 +52,9 @@ Use only these 17 business categories:
 - `snacks_and_desserts`: Snacks & Desserts / 零食及甜点
 - `drinks`: Drinks / 饮品
 - `condiments_and_oils`: Condiments & Oils / 调味品及油脂
+- `other_food`: Other Food / 其他食物
 
-Classify the returned item itself. Use `salad` for named salads and `soup_stew_and_mixed_meals` for cohesive mixed dishes that do not belong to a more specific category. Every edible item must use the closest defensible business category. `Other Food` is an internal fallback icon in the source workbook, not a runtime output value. Do not alter item boundaries or food specificity merely to fit a category.
+Classify the returned item itself. Use `salad` for named salads and `soup_stew_and_mixed_meals` for cohesive mixed dishes that do not belong to a more specific category. Use `other_food` only when an edible item cannot be reliably assigned to any of the other 17 categories. Do not alter item boundaries or food specificity merely to fit a category.
 
 ## Post-Extraction Name Normalization
 
@@ -51,7 +66,7 @@ Rules:
 - Preserve every major ingredient that materially changes nutrition. For example, `mixed green salad with cheese` and `mixed green salad with chicken` remain different names.
 - If no family fits, keep a concise practical name derived from the text.
 - Treat the conservative canonical name families below as lowercase `normalized_name` values used for lookup and matching.
-- Output `item_name` as frontend-facing English in sentence case while preserving conventional capitalization such as `MCT oil`.
+- Output `item_name` as a natural frontend-facing food name in `output_locale`, using locale-appropriate naming and casing.
 
 Canonical name families:
 
@@ -130,10 +145,10 @@ Use a practical generic food or dish name rather than a brand-heavy product titl
 
 ## Food Name Capitalization
 
-- Output `item_name` as a frontend-facing English name using sentence case: capitalize the first word, not every word.
+- Output `item_name` as a natural frontend-facing food name in `output_locale`, using locale-appropriate naming and casing.
 - Preserve conventional capitalization for proper names and acronyms, such as `Greek yogurt`, `Caesar salad`, `Brussels sprouts`, `MCT oil`, and `BLT sandwich`.
 - Do not use Title Case for every word. Prefer `Smoked salmon with cream cheese`, not `Smoked Salmon With Cream Cheese`.
-- The validation layer derives lowercase `normalized_name` from `item_name` for lookup and matching.
+- Output lowercase English `normalized_name` explicitly. The validation layer normalizes its whitespace and casing but must not derive it from localized `item_name`.
 - Capitalization must not change the food identity, preparation, subtype, or item boundaries extracted from the source text.
 
 For sauces and added fats, keep physically integrated sauce within a cohesive dish. Treat a separately listed or separately quantified sauce, dip, dressing, or added fat as its own item when nutritionally meaningful.
