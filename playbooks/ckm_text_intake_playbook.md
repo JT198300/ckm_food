@@ -25,9 +25,17 @@ The supported `output_locale` values are:
 - `fr-FR`
 - `es-ES`
 
-Understand meal text regardless of its source language. Treat `output_locale` as a weak cultural interpretation and naming prior only when the text supports multiple similarly plausible food identities. In that limited tie-break case, prefer the common food or dish interpretation used in the requested locale. Locale must never override an explicit food name, ingredient, preparation, amount, or source-language meaning; it must not merge or split foods or increase confidence. A meal may come from any cuisine regardless of locale.
+Understand meal text regardless of its source language. Lock explicit food spans and item boundaries before consulting `output_locale`. Then treat `output_locale` as a weak cultural interpretation and naming prior only when one locked item supports multiple similarly plausible food identities. In that limited tie-break case, prefer the common food or dish interpretation used in the requested locale. Locale must never override an explicit food name, ingredient, preparation, amount, or source-language meaning; it must not change the locked item count or boundaries or increase confidence. A meal may come from any cuisine regardless of locale.
 
-Extract item boundaries, amounts, and concise lowercase English canonical `normalized_name` values from the text, using locale only for the tie-break above. Then render each item one-to-one as frontend-facing `item_name`; localization must never merge, split, add, or remove food items. Both names must preserve the same food identity, major ingredients, and nutrition-relevant preparation stated by the user. Keep `nutrition_relevant_cues` in concise English. Preserve `source_text_span` in the original input language. For `en-US`, `de-DE`, `fr-FR`, and `es-ES`, start `item_name` with an uppercase letter and use natural sentence-style casing, never Title Case for every word. Preserve required local capitalization such as German nouns. For `zh-CN`, use natural Simplified Chinese naming.
+```python
+locked_items = parse_food_items_from_source_text(meal_text)  # locale-independent
+for item in locked_items:
+    candidates = interpret_item_from_source_text(item)
+    identity = locale_tiebreak(candidates, output_locale) if similarly_plausible(candidates) else candidates[0]
+    render_localized_item_name(identity, output_locale)
+```
+
+Extract amounts and concise lowercase English canonical `normalized_name` values from the text for each locked item, using locale only for the identity tie-break above. Then render each item one-to-one as frontend-facing `item_name`; localization must never merge, split, add, or remove food items. Both names must preserve the same food identity, major ingredients, and nutrition-relevant preparation stated by the user. Keep `nutrition_relevant_cues` in concise English. Preserve `source_text_span` in the original input language. For `en-US`, `de-DE`, `fr-FR`, and `es-ES`, start `item_name` with an uppercase letter and use natural sentence-style casing, never Title Case for every word. Preserve required local capitalization such as German nouns. For `zh-CN`, use natural Simplified Chinese naming.
 
 ## Food Category
 

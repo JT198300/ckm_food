@@ -18,9 +18,17 @@ The supported `output_locale` values are:
 - `fr-FR`
 - `es-ES`
 
-Understand image content and visible text regardless of source language. Treat `output_locale` as a weak cultural recognition and naming prior only when the image supports multiple similarly plausible food identities. In that limited tie-break case, prefer the common food or dish interpretation used in the requested locale. Locale must never override visible evidence, invent a cuisine or ingredient, change item boundaries, alter an amount, or increase confidence. A meal may come from any cuisine regardless of locale.
+Understand image content and visible text regardless of source language. Lock food regions and item boundaries before consulting `output_locale`. Then treat `output_locale` as a weak cultural recognition and naming prior only when one locked item supports multiple similarly plausible food identities. In that limited tie-break case, prefer the common food or dish interpretation used in the requested locale. Locale must never override visible evidence, invent a cuisine or ingredient, change the locked item count or boundaries, alter an amount, or increase confidence. A meal may come from any cuisine regardless of locale.
 
-Determine item boundaries, amounts, and concise lowercase English canonical `normalized_name` values from the evidence, using locale only for the tie-break above. Then render each item one-to-one as frontend-facing `item_name`; localization must never merge, split, add, or remove food items. Both names must preserve the same food identity, major ingredients, and nutrition-relevant preparation. Keep `nutrition_relevant_cues` in concise English. Preserve screenshot text in its original language when returning `extracted_text`. For `en-US`, `de-DE`, `fr-FR`, and `es-ES`, start `item_name` with an uppercase letter and use natural sentence-style casing, never Title Case for every word. Preserve required local capitalization such as German nouns. For `zh-CN`, use natural Simplified Chinese naming.
+```python
+locked_items = segment_food_items_from_image_evidence(image)  # locale-independent
+for item in locked_items:
+    candidates = identify_from_item_evidence(item)
+    identity = locale_tiebreak(candidates, output_locale) if similarly_plausible(candidates) else candidates[0]
+    render_localized_item_name(identity, output_locale)
+```
+
+Determine amounts and concise lowercase English canonical `normalized_name` values from the evidence for each locked item, using locale only for the identity tie-break above. Then render each item one-to-one as frontend-facing `item_name`; localization must never merge, split, add, or remove food items. Both names must preserve the same food identity, major ingredients, and nutrition-relevant preparation. Keep `nutrition_relevant_cues` in concise English. Preserve screenshot text in its original language when returning `extracted_text`. For `en-US`, `de-DE`, `fr-FR`, and `es-ES`, start `item_name` with an uppercase letter and use natural sentence-style casing, never Title Case for every word. Preserve required local capitalization such as German nouns. For `zh-CN`, use natural Simplified Chinese naming.
 
 ## Food Category
 
