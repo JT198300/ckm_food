@@ -18,17 +18,19 @@ The supported `output_locale` values are:
 - `fr-FR`
 - `es-ES`
 
-Understand image content and visible text regardless of source language. Lock food regions and item boundaries before consulting `output_locale`. Then treat `output_locale` as a weak cultural recognition and naming prior only when one locked item supports multiple similarly plausible food identities. In that limited tie-break case, prefer the common food or dish interpretation used in the requested locale. Locale must never override visible evidence, invent a cuisine or ingredient, change the locked item count or boundaries, alter an amount, or increase confidence. A meal may come from any cuisine regardless of locale.
+Understand image content and visible text regardless of source language. Lock food regions and item boundaries before consulting `output_locale`. After boundaries are locked, use `output_locale` as both the output-language selector and a cultural food-recognition prior. For each locked item, consider established local dish candidates when the visible structure, cooking method, presentation, or ingredient pattern supports them. Prefer the conventional dish name used in the requested locale over a generic visual description when that local identity is materially supported; exact identification of every ingredient is not required. Locale must never override contradictory evidence, invent a cuisine or ingredient from locale alone, change the locked item count or boundaries, alter an amount, or increase confidence. A meal may come from any cuisine regardless of locale.
 
 ```python
 locked_items = segment_food_items_from_image_evidence(image)  # locale-independent
 for item in locked_items:
-    candidates = identify_from_item_evidence(item)
-    identity = locale_tiebreak(candidates, output_locale) if similarly_plausible(candidates) else candidates[0]
+    evidence_candidates = identify_from_item_evidence(item)
+    local_dish_candidates = established_local_dishes_supported_by_evidence(item, output_locale)
+    candidates = keep_only_visually_supported(evidence_candidates + local_dish_candidates)
+    identity = prefer_conventional_local_name(candidates, output_locale)
     render_localized_item_name(identity, output_locale)
 ```
 
-Determine amounts and concise lowercase English canonical `normalized_name` values from the evidence for each locked item, using locale only for the identity tie-break above. Then render each item one-to-one as frontend-facing `item_name`; localization must never merge, split, add, or remove food items. Both names must preserve the same food identity, major ingredients, and nutrition-relevant preparation. Keep `nutrition_relevant_cues` in concise English. Preserve screenshot text in its original language when returning `extracted_text`. For `en-US`, `de-DE`, `fr-FR`, and `es-ES`, start `item_name` with an uppercase letter and use natural sentence-style casing, never Title Case for every word. Preserve required local capitalization such as German nouns. For `zh-CN`, use natural Simplified Chinese naming.
+Determine amounts and concise lowercase English canonical `normalized_name` values from the evidence for each locked item. For a culturally established dish, use its conventional English or romanized canonical identity rather than replacing it with an overly generic description. Then render each item one-to-one as frontend-facing `item_name`; localization must never merge, split, add, or remove food items. Both names must preserve the same food identity, major ingredients, and nutrition-relevant preparation. Keep `nutrition_relevant_cues` in concise English. Preserve screenshot text in its original language when returning `extracted_text`. For `en-US`, `de-DE`, `fr-FR`, and `es-ES`, start `item_name` with an uppercase letter and use natural sentence-style casing, never Title Case for every word. Preserve required local capitalization such as German nouns. For `zh-CN`, use natural Simplified Chinese naming.
 
 ## Food Category
 
