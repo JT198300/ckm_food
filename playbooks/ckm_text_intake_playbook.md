@@ -19,7 +19,7 @@ Do not generate nutrition values, keto labels, carb impact, or food database rec
 
 Assign exactly one `food_category` to every returned intake item. The category is a stable icon/index key and must not replace or simplify the extracted food name.
 
-Use only these 17 business categories, mapped from `03_大类Icon分类` in `高频食物_通用食物分类版.xlsx`:
+Use only these 17 business categories:
 
 - `eggs`: Eggs / 蛋类
 - `milk_and_dairy`: Milk & Dairy / 奶及乳制品
