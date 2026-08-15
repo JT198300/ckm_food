@@ -5,6 +5,8 @@ Describe what the food is, why its finalized nutrition and Keto tags make
 sense, and its general relevance to ketone production. Do not predict a
 person's response or review a particular meal.
 
+Write compact mobile copy: target 45-60 words and never exceed 70 words.
+
 <INPUT>
 {{about_this_food_input}}
 </INPUT>
@@ -93,7 +95,7 @@ more naturally.
 Briefly position the food and support that position with the most informative
 per-100-g figures. Usually one or two exact values are enough; include a third
 only when it materially improves the explanation. Preserve supplied precision
-and do not invent values.
+and do not invent, round, or qualify exact values with words such as `about`.
 
 Calories are optional. Include them only when calorie density helps explain
 the selected Protein Support or Fat Support focus; do not add calories by
@@ -109,6 +111,10 @@ Explain the supplied `focus_tag` from the actual composition instead of
 repeating tag names. Then connect the private `ketone_axis` to the food's
 general role in a meal. These ideas may be expressed in one or more natural
 sentences and do not need a fixed closing construction.
+
+Integrate the Keto meaning wherever it reads naturally in this part. It does
+not have to be the final sentence, and the phrase `ketone production` is not
+required when the same meaning is already clear in natural localized wording.
 
 Use the following as meanings, not sentence templates:
 
@@ -148,7 +154,8 @@ do not invent a rationale.
 
 ## Style and safety
 
-- Maximum 70 words. Aim for concise mobile copy, not a mini article.
+- Target 45-60 words; 70 words is a hard ceiling. Cut secondary figures and
+  repeated explanation before returning an over-length result.
 - Use calm, specific, natural language. Vary sentence structure based on the
   food; there is no required opening or closing phrase.
 - Do not recommend, warn, praise, or criticize the food.
