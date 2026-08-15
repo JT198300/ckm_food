@@ -46,7 +46,7 @@ Everything below is PER 100 GRAMS.
                         PRESENT ONLY when fat_support is Strong or Moderate.
                         ABSENT when Limited — check before writing about fat
                         character.
-    .focus_tag ......... High Carb | Moderate Carb | Very Low / Low Carb |
+    .focus_tag ......... High Carb | Moderate Carb | Very Low Carb | Low Carb |
                         Strong Protein | Strong Fat | MCT Rich
                         PRESELECTED from the finalized tags for paragraph 2.
     .ketone_axis
