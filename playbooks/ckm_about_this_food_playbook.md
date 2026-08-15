@@ -77,6 +77,11 @@ carbohydrate-based Keto interpretation. Mention gluconeogenesis only when the
 focus is Strong Protein, and only as a slow, indirect general property of
 surplus protein, never as the final Keto conclusion.
 
+When `ketone_axis.mode == "carb"`, derive the Keto meaning only from its carb
+tier, net carbs, and valid fiber buffering. Do not imply that ordinary fat,
+fat quality, or protein drives ketone production. When the mode is `mct`, state
+the supplied MCT meaning without adding an absorption or metabolic mechanism.
+
 ## Write the copy
 
 Write two short natural parts, preferably as two paragraphs separated by one
@@ -89,6 +94,10 @@ Briefly position the food and support that position with the most informative
 per-100-g figures. Usually one or two exact values are enough; include a third
 only when it materially improves the explanation. Preserve supplied precision
 and do not invent values.
+
+Calories are optional. Include them only when calorie density helps explain
+the selected Protein Support or Fat Support focus; do not add calories by
+default.
 
 Do not start by reciting a nutrition table. Work the per-100-g basis naturally
 into the copy. Use fiber when it genuinely explains the relationship between
@@ -143,6 +152,8 @@ do not invent a rationale.
 - Use calm, specific, natural language. Vary sentence structure based on the
   food; there is no required opening or closing phrase.
 - Do not recommend, warn, praise, or criticize the food.
+- Do not call a food `keto-friendly`, `keto-compatible`, or unsuitable. State
+  its carbohydrate or MCT role neutrally instead.
 - Do not address the user's situation or claim a personal metabolic outcome.
 - Do not use Meal Review phrases such as "Expected to challenge ketosis".
 - Do not expose internal field names or label strings.
