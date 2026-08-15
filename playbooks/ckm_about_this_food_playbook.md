@@ -58,6 +58,12 @@ Everything below is PER 100 GRAMS.
       .fiber_buffered .. true when total carbohydrate is at least 4 g and
                         fiber is at least 40% of total carbohydrate.
       .net_carbs ....... exact supplied net carbohydrate per 100 g.
+      .landing ......... too_low_to_meaningfully_compete |
+                        small_real_not_major_competitor |
+                        real_competition_depends_on_portion |
+                        strong_competitor | can_raise_ketones_directly
+                        DETERMINISTIC meaning of the supplied tier. Express
+                        it naturally; do not reinterpret or replace it.
   language
 
 NOT SUPPLIED, ON PURPOSE
@@ -188,8 +194,9 @@ for carbohydrate, protein, fat or MCT. Paragraph 1 may still describe the
 other composition facts that define the food.
 
 `ketone_axis` chooses the final ketone statement. It is a factual carb-axis
-judgement, not an editorial priority. Protein and ordinary fat must never
-override it. `MCT Rich` is the only exception.
+judgement, not an editorial priority. Its `landing` is already selected and
+must be preserved in meaning. Protein and ordinary fat must never override
+it. `MCT Rich` is the only exception.
 
 Do two jobs, in this order:
 
@@ -280,8 +287,8 @@ FINAL CHECK
 - Paragraph 1 opens on a position, not on "Per 100 g:".
 - The per-100g basis is legible somewhere.
 - Part 2 explains `focus_tag` rather than listing tags.
-- Exactly one ketone sentence, selected from `ketone_axis`, with the actual
-  net-carb value unless the MCT override applies.
+- Exactly one ketone sentence, expressing `ketone_axis.landing`, with the
+  actual net-carb value unless the MCT override applies.
 - Check that the closing did not drift away from `ketone_axis.tier`: Very Low
   is too low to meaningfully compete; Low is small but real and not a major
   competitor; Moderate is real and its degree of competition depends on
