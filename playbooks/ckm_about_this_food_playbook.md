@@ -282,8 +282,14 @@ FINAL CHECK
 - Part 2 explains `focus_tag` rather than listing tags.
 - Exactly one ketone sentence, selected from `ketone_axis`, with the actual
   net-carb value unless the MCT override applies.
+- Check that the closing did not drift away from `ketone_axis.tier`: Very Low
+  is too low to meaningfully compete; Low is small but real and not a major
+  competitor; Moderate is real and its degree of competition depends on
+  portion; High is a strong competitor; MCT can raise ketones directly.
 - No micronutrients, vitamins or minerals.
-- Nothing said about portion, other foods, or this user.
+- Do not claim an actual portion, other foods, or anything about this user.
+  For Moderate Carb, it is required to say that the degree of competition
+  depends on portion, without assuming what that portion is.
 - No advice, no warning, no good/bad judgement.
 - No internal label string leaked.
 - THE WHOLE TEXT WOULD STILL BE TRUE INSIDE ANY MEAL.
