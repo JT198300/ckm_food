@@ -92,83 +92,39 @@ more naturally.
 
 ### Part 1: explain the food's energy structure
 
-Before drafting Part 1, identify which supplied macronutrient contributes the
-most calculated energy. This is a reasoning procedure, not a sentence template.
-Do not output the internal field names.
+Before drafting Part 1, calculate the energy contributed by protein, fat, and
+digestible carbohydrate. Select the largest calculated value as the primary
+energy source. This is a private factual check, not a sentence template. Do not
+output the calculation or its internal field names.
 
 ```python
-def derive_energy_structure(food):
+def derive_primary_energy_source(food):
     macros = food["macros"]
-    protein_kcal = (macros.get("protein") or 0) * 4
-    fat_kcal = (macros.get("fat") or 0) * 9
-    carb_kcal = (macros.get("net_carbs") or 0) * 4
-    macro_kcal = protein_kcal + fat_kcal + carb_kcal
-
-    total = macros.get("total_carbs")
-    fiber = macros.get("fiber")
-    fiber_buffered = (
-        total is not None
-        and fiber is not None
-        and total >= 4
-        and fiber / total >= 0.4
+    energy = {}
+    energy["protein"] = (macros.get("protein") or 0) * 4
+    energy["fat"] = (macros.get("fat") or 0) * 9
+    energy["digestible_carbohydrate"] = (
+        (macros.get("net_carbs") or 0) * 4
     )
-
-    sources = {
-        "protein": protein_kcal,
-        "fat": fat_kcal,
-        "digestible_carbohydrate": carb_kcal,
-    }
-    ranked = sorted(sources.items(), key=lambda pair: pair[1], reverse=True)
-    dominant_name, dominant_kcal = ranked[0]
-    second_name, second_kcal = ranked[1]
-    dominant_share = dominant_kcal / macro_kcal if macro_kcal else 0
-
-    return {
-        "dominant": dominant_name,
-        "dominant_share": dominant_share,
-        "second": second_name,
-        "mixed": dominant_share < 0.5,
-        "fiber_buffered": fiber_buffered,
-        "source_kcal": sources,
-    }
+    return max(energy, key=energy.get)
 ```
 
-Use the derived energy structure to make one food-specific point, then support
-that point with no more than two exact per-100-g nutrition values. One value is
-enough when it fully explains the food. A value means one supplied kcal or gram
-figure; the fixed `per 100 g` basis does not count as a value.
+The primary source is determined only by these calculated kcal values. Never
+select it by comparing gram amounts, by using the food name, or from the Protein
+Support or Fat Support tags. For example, `12 g fat` contributes `108 kcal` and
+therefore exceeds `24 g protein`, which contributes `96 kcal`.
 
-The relationship must follow the calculated kcal values, not the relative gram
-amounts and not the Protein Support or Fat Support tags:
+State one logical relationship built around the calculated primary source. If
+the two largest calculated sources are close, describe the food as mixed while
+still identifying which source is slightly larger. Fiber may explain why net
+carbohydrate is lower than total carbohydrate, but fiber never changes the
+primary energy source.
 
-- When `mixed` is false, explain that `dominant` supplies most of the calculated
-  macro energy.
-- When `mixed` is true, explain the relationship between `dominant` and
-  `second`; do not falsely claim that either one supplies most of the energy.
-- When `fiber_buffered` is true, fiber may be the key supporting contrast, but
-  it does not replace or change the calculated dominant energy source.
-
-Apply these consistency checks before drafting:
-
-```python
-structure = derive_energy_structure(food)
-
-# A "most energy" claim is allowed only when the largest calculated source
-# reaches 50% of calculated macro energy.
-if prose_claims_most_energy:
-    assert claimed_source == structure["dominant"]
-    assert structure["dominant_share"] >= 0.5
-
-# Otherwise compare the two leading sources without calling either "most".
-if structure["mixed"]:
-    assert prose_names_leading_sources == {
-        structure["dominant"], structure["second"]
-    }
-```
-
-Choose the one or two values that best prove or clarify the relationship. For a
-fiber-buffered food, two useful values may be fiber and net carbohydrate; the
-prose can still state which macro leads energy without printing its value.
+Support that relationship with no more than two exact per-100-g nutrition
+values. One value is enough when it fully explains the food. A value means one
+supplied kcal or gram figure; the fixed `per 100 g` basis does not count as a
+value. After drafting, count the exact nutrition figures in Part 1 and remove
+the least important figure until no more than two remain.
 
 Do not list protein, fat, and carbohydrate merely to appear complete. Do not
 turn Part 1 into a compact nutrition table. Calories are optional and should
@@ -246,9 +202,9 @@ Before returning each result, verify:
 
 1. The text is in `output_locale` and is no more than 70 words.
 2. It identifies the food and uses only supplied per-100-g facts.
-3. Part 1 states which macro contributes the most calculated energy, or names
-   the two leading sources when neither reaches 50%; the claim agrees with
-   `protein * 4`, `fat * 9`, and `net_carbs * 4`.
+3. Part 1 identifies the primary energy source returned by
+   `derive_primary_energy_source`; any mixed comparison still names the correct
+   slightly larger source.
 4. Part 1 contains no more than two exact nutrition values and does not
    inventory all macros.
 5. It explains the selected focus rather than listing labels.
