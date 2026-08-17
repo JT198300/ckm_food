@@ -102,6 +102,12 @@ amounts, the food name, or the Protein Support and Fat Support tags. Use
 leading source is far ahead or close to the other sources. Do not print these
 internal calculated component-kcal values in the copy.
 
+Reserve `protein-led`, `fat-led`, `carb-led`, `protein-driven`, `fat-driven`,
+`carb-driven`, and equivalent localized energy-language exclusively for
+`primary_energy_source`. A Strong Protein or Strong Fat tag may explain that a
+food is a practical source of that nutrient, but it must never create a second,
+conflicting claim about which nutrient leads the food's energy.
+
 Part 1 must communicate one food-specific nutrition relationship:
 
 1. identify what primarily drives the food's energy;
@@ -209,7 +215,8 @@ Before returning each result, verify:
 1. The text is in `output_locale` and is no more than 70 words.
 2. It identifies the food and uses only supplied per-100-g facts.
 3. Part 1 agrees with `food.energy.primary_energy_source`; any mixed comparison
-   still names that source as the slightly larger one.
+   still names that source as the slightly larger one, and no later wording
+   assigns energy leadership to another nutrient.
 4. Part 1 contains no more than two exact nutrition values, explains one
    relationship, and does not inventory or verbally cover all macros.
 5. It explains the selected focus rather than listing labels.
