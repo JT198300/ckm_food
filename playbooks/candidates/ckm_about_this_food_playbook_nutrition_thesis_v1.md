@@ -25,6 +25,9 @@ Each item contains:
 - `food.calories`: kcal per 100 g
 - `food.macros`: `total_carbs`, `net_carbs`, `fiber`, `sugar`, `protein`, and
   `fat`, all per 100 g
+- `food.energy`: values calculated deterministically before the LLM call:
+  `protein_kcal`, `fat_kcal`, `carb_kcal`, and `primary_energy_source`.
+  `primary_energy_source` is `protein`, `fat`, or `digestible_carbohydrate`.
 - `food.tags.carb_impact`: `Very Low Carb`, `Low Carb`, `Moderate Carb`, or
   `High Carb`
 - `food.tags.protein_support`: `Strong`, `Moderate`, or `Limited`
@@ -92,39 +95,35 @@ more naturally.
 
 ### Part 1: explain the food's energy structure
 
-Before drafting Part 1, calculate the energy contributed by protein, fat, and
-digestible carbohydrate. Select the largest calculated value as the primary
-energy source. This is a private factual check, not a sentence template. Do not
-output the calculation or its internal field names.
+Treat `food.energy.primary_energy_source` as an authoritative, deterministically
+calculated fact. Do not recalculate, reinterpret, or override it from gram
+amounts, the food name, or the Protein Support and Fat Support tags. Use
+`protein_kcal`, `fat_kcal`, and `carb_kcal` only to understand whether the
+leading source is far ahead or close to the other sources. Do not print these
+internal calculated component-kcal values in the copy.
 
-```python
-def derive_primary_energy_source(food):
-    macros = food["macros"]
-    energy = {}
-    energy["protein"] = (macros.get("protein") or 0) * 4
-    energy["fat"] = (macros.get("fat") or 0) * 9
-    energy["digestible_carbohydrate"] = (
-        (macros.get("net_carbs") or 0) * 4
-    )
-    return max(energy, key=energy.get)
-```
+Part 1 must communicate one food-specific nutrition relationship:
 
-The primary source is determined only by these calculated kcal values. Never
-select it by comparing gram amounts, by using the food name, or from the Protein
-Support or Fat Support tags. For example, `12 g fat` contributes `108 kcal` and
-therefore exceeds `24 g protein`, which contributes `96 kcal`.
+1. identify what primarily drives the food's energy;
+2. choose only the one or two exact per-100-g values that best reveal the
+   food's character or the most useful contrast.
 
-State one logical relationship built around the calculated primary source. If
-the two largest calculated sources are close, describe the food as mixed while
-still identifying which source is slightly larger. Fiber may explain why net
-carbohydrate is lower than total carbohydrate, but fiber never changes the
+Do not summarize the macro panel. After selecting the evidence, do not append
+the remaining protein, fat, carbohydrate, fiber, sugar, or calorie values just
+to make the description complete. Mentioning the primary source in words does
+not require printing its gram value. For example, calories plus net carbs may
+be more informative than printing fat, protein, and carbohydrate together.
+
+If the two largest calculated sources are close, describe the food as mixed
+while still identifying which source is slightly larger. Fiber may explain why
+net carbohydrate is lower than total carbohydrate, but fiber never changes the
 primary energy source.
 
-Support that relationship with no more than two exact per-100-g nutrition
-values. One value is enough when it fully explains the food. A value means one
-supplied kcal or gram figure; the fixed `per 100 g` basis does not count as a
-value. After drafting, count the exact nutrition figures in Part 1 and remove
-the least important figure until no more than two remain.
+Part 1 may contain several natural sentences, but together they may contain no
+more than two exact nutrition values. One value is enough when it fully explains
+the food. The fixed `per 100 g` basis does not count as a value. After drafting,
+count the exact nutrition figures across the entire Part 1 and remove the least
+important figure until no more than two remain.
 
 Do not list protein, fat, and carbohydrate merely to appear complete. Do not
 turn Part 1 into a compact nutrition table. Calories are optional and should
@@ -202,11 +201,10 @@ Before returning each result, verify:
 
 1. The text is in `output_locale` and is no more than 70 words.
 2. It identifies the food and uses only supplied per-100-g facts.
-3. Part 1 identifies the primary energy source returned by
-   `derive_primary_energy_source`; any mixed comparison still names the correct
-   slightly larger source.
-4. Part 1 contains no more than two exact nutrition values and does not
-   inventory all macros.
+3. Part 1 agrees with `food.energy.primary_energy_source`; any mixed comparison
+   still names that source as the slightly larger one.
+4. Part 1 contains no more than two exact nutrition values, explains one
+   relationship, and does not inventory or verbally cover all macros.
 5. It explains the selected focus rather than listing labels.
 6. Its Keto meaning follows the internally derived `ketone_axis`, but the
    prose does not read like a fixed tier template.
