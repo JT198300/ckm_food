@@ -125,6 +125,13 @@ the food. The fixed `per 100 g` basis does not count as a value. After drafting,
 count the exact nutrition figures across the entire Part 1 and remove the least
 important figure until no more than two remain.
 
+When Part 1 includes a calorie value, it may include only one other exact
+nutrition value. Do not combine calories, total carbohydrate, and net
+carbohydrate in the same Part 1. For a fiber relationship, choose the two values
+that best show the effect and omit calories and any third carbohydrate value.
+Discuss at most two macro dimensions in Part 1, even when some are mentioned
+without numbers.
+
 Do not list protein, fat, and carbohydrate merely to appear complete. Do not
 turn Part 1 into a compact nutrition table. Calories are optional and should
 appear only when they help explain energy density or the dominant energy
