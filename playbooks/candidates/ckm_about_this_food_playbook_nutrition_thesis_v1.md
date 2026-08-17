@@ -90,14 +90,14 @@ Write two short natural parts, preferably as two paragraphs separated by one
 blank line. Simplified Chinese may use one cohesive paragraph when it reads
 more naturally.
 
-### Part 1: identify the food through its composition
+### Part 1: explain the food's energy structure
 
-Before drafting Part 1, choose one private `nutrition_thesis` that best explains
-the food's composition. This is a reasoning procedure, not a sentence template.
-Do not output the thesis name.
+Before drafting Part 1, identify which supplied macronutrient contributes the
+most calculated energy. This is a reasoning procedure, not a sentence template.
+Do not output the internal field names.
 
 ```python
-def derive_nutrition_thesis(food):
+def derive_energy_structure(food):
     macros = food["macros"]
     protein_kcal = (macros.get("protein") or 0) * 4
     fat_kcal = (macros.get("fat") or 0) * 9
@@ -113,37 +113,62 @@ def derive_nutrition_thesis(food):
         and fiber / total >= 0.4
     )
 
-    shares = {
-        "protein_led": protein_kcal / macro_kcal if macro_kcal else 0,
-        "fat_led": fat_kcal / macro_kcal if macro_kcal else 0,
-        "carb_led": carb_kcal / macro_kcal if macro_kcal else 0,
+    sources = {
+        "protein": protein_kcal,
+        "fat": fat_kcal,
+        "digestible_carbohydrate": carb_kcal,
     }
-    dominant, share = max(shares.items(), key=lambda pair: pair[1])
+    ranked = sorted(sources.items(), key=lambda pair: pair[1], reverse=True)
+    dominant_name, dominant_kcal = ranked[0]
+    second_name, second_kcal = ranked[1]
+    dominant_share = dominant_kcal / macro_kcal if macro_kcal else 0
 
-    if fiber_buffered and macros.get("net_carbs") != total:
-        return "fiber_buffered"
-    if share >= 0.5:
-        return dominant
-    return "mixed"
+    return {
+        "dominant": dominant_name,
+        "dominant_share": dominant_share,
+        "second": second_name,
+        "mixed": dominant_share < 0.5,
+        "fiber_buffered": fiber_buffered,
+        "source_kcal": sources,
+    }
 ```
 
-Use the thesis to make one food-specific point, then support that point with no
-more than two exact per-100-g nutrition values. One value is enough when it
-fully explains the food. A value means one supplied kcal or gram figure; the
-fixed `per 100 g` basis does not count as a value.
+Use the derived energy structure to make one food-specific point, then support
+that point with no more than two exact per-100-g nutrition values. One value is
+enough when it fully explains the food. A value means one supplied kcal or gram
+figure; the fixed `per 100 g` basis does not count as a value.
 
-Choose evidence for the relationship, not for macro coverage:
+The relationship must follow the calculated kcal values, not the relative gram
+amounts and not the Protein Support or Fat Support tags:
 
-- `fat_led`: explain that fat supplies most of the food's energy; select the
-  most useful one or two values, such as calories and fat, or fat and net carbs.
-- `protein_led`: explain that protein is the main energy-bearing feature;
-  select protein plus at most one useful contrast.
-- `carb_led`: explain that digestible carbohydrate leads the energy structure;
-  select net carbs plus at most one useful carbohydrate detail.
-- `fiber_buffered`: explain how fiber creates a meaningful gap between total
-  and net carbohydrate; select the two values that show that gap.
-- `mixed`: explain the most informative contrast between the two leading
-  components without trying to cover every macro.
+- When `mixed` is false, explain that `dominant` supplies most of the calculated
+  macro energy.
+- When `mixed` is true, explain the relationship between `dominant` and
+  `second`; do not falsely claim that either one supplies most of the energy.
+- When `fiber_buffered` is true, fiber may be the key supporting contrast, but
+  it does not replace or change the calculated dominant energy source.
+
+Apply these consistency checks before drafting:
+
+```python
+structure = derive_energy_structure(food)
+
+# A "most energy" claim is allowed only when the largest calculated source
+# reaches 50% of calculated macro energy.
+if prose_claims_most_energy:
+    assert claimed_source == structure["dominant"]
+    assert structure["dominant_share"] >= 0.5
+
+# Otherwise compare the two leading sources without calling either "most".
+if structure["mixed"]:
+    assert prose_names_leading_sources == {
+        structure["dominant"], structure["second"]
+    }
+```
+
+Choose the one or two values that best prove or clarify the relationship. For a
+fiber-buffered food, two useful values may be fiber and net carbohydrate; the
+prose can still state which macro leads energy without printing its value.
 
 Do not list protein, fat, and carbohydrate merely to appear complete. Do not
 turn Part 1 into a compact nutrition table. Calories are optional and should
@@ -221,10 +246,13 @@ Before returning each result, verify:
 
 1. The text is in `output_locale` and is no more than 70 words.
 2. It identifies the food and uses only supplied per-100-g facts.
-3. Part 1 states one nutrition relationship and contains no more than two exact
-   nutrition values; it does not inventory all macros.
-4. It explains the selected focus rather than listing labels.
-5. Its Keto meaning follows the internally derived `ketone_axis`, but the
+3. Part 1 states which macro contributes the most calculated energy, or names
+   the two leading sources when neither reaches 50%; the claim agrees with
+   `protein * 4`, `fat * 9`, and `net_carbs * 4`.
+4. Part 1 contains no more than two exact nutrition values and does not
+   inventory all macros.
+5. It explains the selected focus rather than listing labels.
+6. Its Keto meaning follows the internally derived `ketone_axis`, but the
    prose does not read like a fixed tier template.
-6. It contains no personal prediction, advice, micronutrient claim, internal
+7. It contains no personal prediction, advice, micronutrient claim, internal
    field name, or meal-specific assumption.
