@@ -15,6 +15,18 @@ It converts text into a standardized food-and-amount JSON structure.
 
 Do not generate nutrition values, keto labels, carb impact, or food database records.
 
+## Human-Edibility Boundary
+
+Only return an intake item when it represents something that exists in the real world and is ordinarily intended or accepted for human consumption as food or drink.
+
+A user's assertion that something was eaten does not make it eligible. Do not return fictional foods or creatures, human tissue, feces or other bodily waste, or any other non-food substance as an intake item. Do not relabel excluded content as `unknown` or `other_food`.
+
+When eligible food or drink appears together with excluded content, keep only the eligible items and add this generic warning without repeating the excluded content:
+
+`Some input content was excluded because it is not a real, ordinarily edible food or drink.`
+
+If no eligible food or drink remains, return an empty `intake_items` array. The validation layer will return `no_food_text_detected`.
+
 ## Output Locale
 
 The supported `output_locale` values are:
