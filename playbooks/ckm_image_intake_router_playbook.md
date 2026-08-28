@@ -48,7 +48,7 @@ Determine amounts and concise lowercase English canonical `normalized_name` valu
 
 Assign exactly one `food_category` to every returned intake item. This field is a stable icon/index key, not a substitute for `item_name` and not a reason to make the food name more generic.
 
-Use only these 18 food categories:
+Use only these 19 food categories:
 
 - `eggs`: Eggs / 蛋类
 - `milk_and_dairy`: Milk & Dairy / 奶及乳制品
@@ -63,13 +63,14 @@ Use only these 18 food categories:
 - `potatoes_and_starchy_roots`: Potatoes & Starchy Roots / 薯类
 - `nuts_and_seeds`: Nuts & Seeds / 坚果及种子
 - `salad`: Salad / 沙拉
-- `soup_stew_and_mixed_meals`: Soup, Stew & Mixed Meals / 汤、炖菜及混合餐
+- `soups_and_stews`: Soups & Stews / 汤与炖菜
+- `solid_mixed_meals`: Solid Mixed Meals / 固体复合餐
 - `snacks_and_desserts`: Snacks & Desserts / 零食及甜点
 - `drinks`: Drinks / 饮品
 - `condiments_and_oils`: Condiments & Oils / 调味品及油脂
 - `other_food`: Other Food / 其他食物
 
-Classify by the practical identity of the returned item. Use `salad` for named salads and `soup_stew_and_mixed_meals` for cohesive mixed dishes that do not belong to a more specific category. Use `other_food` only when an edible item cannot be reliably assigned to any of the other 17 categories. Do not change item boundaries, confidence, or nutrition cues merely to fit a category.
+Classify by the practical identity of the returned item. Use `salad` for named salads. Use `soups_and_stews` for soups, broths, chowders, curries with substantial liquid, stews, and other dishes where broth or cooking liquid is a defining part of the served food. Use `solid_mixed_meals` for cohesive solid combination meals such as burgers, sandwiches, pizza, wraps, rice bowls, fried rice, casseroles, and similar assembled or mixed dishes that do not belong to a more specific category. Use `other_food` only when an edible item cannot be reliably assigned to any of the other 18 categories. Do not change item boundaries, confidence, or nutrition cues merely to fit a category.
 
 ## Output Modes
 
