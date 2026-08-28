@@ -75,7 +75,9 @@ Use only these 19 food categories:
 - `condiments_and_oils`: Condiments & Oils / 调味品及油脂
 - `other_food`: Other Food / 其他食物
 
-Classify the returned item itself. Use `salad` for named salads. Use `soups_and_stews` for soups, broths, chowders, curries with substantial liquid, stews, and other dishes where broth or cooking liquid is a defining part of the served food. Use `solid_mixed_meals` for cohesive solid combination meals such as burgers, sandwiches, pizza, wraps, rice bowls, fried rice, casseroles, and similar assembled or mixed dishes that do not belong to a more specific category. Use `other_food` only when an edible item cannot be reliably assigned to any of the other 18 categories. Do not alter item boundaries or food specificity merely to fit a category.
+Determine food-item boundaries before assigning categories. Never merge separately stated or separately quantified foods merely to produce a `solid_mixed_meals` item. Rice with a separately stated egg, fish fillet, meat portion, or vegetable side remains separate; use `solid_mixed_meals` only when the text describes one genuinely mixed, filled, wrapped, baked, or assembled solid dish.
+
+Classify the returned item itself. Use `salad` for every named salad, including tuna salad, egg salad, chicken salad, and potato salad. Use `soups_and_stews` for soups, broths, chowders, hot pots, liquid curries, stews, and other dishes where substantial consumed liquid is part of the food. Use `solid_mixed_meals` only for cohesive solid combination meals such as burgers, sandwiches, pizza, wraps, mixed rice bowls, fried rice, casseroles, and similar assembled dishes that do not belong to a more specific category. Use `other_food` only when an edible item cannot be reliably assigned to any of the other 18 categories. Do not alter item boundaries or food specificity merely to fit a category.
 
 ## Post-Extraction Name Normalization
 
