@@ -70,9 +70,9 @@ Use only these 19 food categories:
 - `condiments_and_oils`: Condiments & Oils / 调味品及油脂
 - `other_food`: Other Food / 其他食物
 
-Determine food-item boundaries before assigning categories. Never merge physically separable foods merely to produce a `solid_mixed_meals` item. Rice with a separately visible egg, fish fillet, meat portion, or vegetable side remains separate when the components can be independently eaten and roughly portioned; use `solid_mixed_meals` only when the components are genuinely mixed, filled, wrapped, baked, or assembled into one customary solid dish.
+Assign `food_category` only after the returned food items have already been identified. Classification must not split, merge, rename, add, or omit food items.
 
-Classify by the practical identity of the returned item. Use `salad` for every named salad, including tuna salad, egg salad, chicken salad, and potato salad. Use `soups_and_stews` when substantial free liquid or spoonable broth surrounds the solids and is intended to be consumed, including soups, broths, chowders, hot pots, liquid curries, and stews. A bowl or pot with visible broth must not be omitted or relabeled as a dry braise merely because solids are prominent. Use `solid_mixed_meals` only when liquid is limited to sauce, glaze, or moisture clinging to a cohesive solid meal. Use `other_food` only when an edible item cannot be reliably assigned to any of the other 18 categories. Do not change item boundaries, confidence, or nutrition cues merely to fit a category.
+Classify by the practical identity of each returned item. Use `salad` for every named salad, including tuna salad, egg salad, chicken salad, and potato salad. Use `soups_and_stews` only when the returned item itself is a soup, broth, chowder, hot pot, liquid curry, stew, or another dish in which consumable liquid is a defining part of the item. A single meat item with cooking or braising liquid may remain `meat`; do not recombine separately returned meat, egg, or vegetable items merely to create a soup. Use `solid_mixed_meals` for cohesive solid combination dishes such as burgers, pizza, wraps, casseroles, frittatas, and assembled mixed dishes that do not belong to a more specific category. Use `other_food` only when an edible item cannot be reliably assigned to any of the other 18 categories.
 
 ## Output Modes
 
