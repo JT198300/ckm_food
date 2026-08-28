@@ -79,6 +79,8 @@ Assign `food_category` only after the returned food items have already been iden
 
 Classify by the practical identity of each returned item. Prefer a specific food category when it clearly defines the item. A vegetable-named, vegetable-dominant dish remains `vegetables` when meat, cheese, or sauce is only an accompaniment. An item with a clear retained staple base remains in that base category when another food is only a topping or accompaniment, such as rice with egg → `rice_and_grains`, pasta with sauce → `noodles_and_pasta`, or toast with cheese → `bread_and_flatbread`. Use `salad` for every named salad, including tuna salad, egg salad, chicken salad, and potato salad. Use `soups_and_stews` only when the returned item itself is a soup, broth, chowder, hot pot, liquid curry, stew, or another dish in which consumable liquid is a defining part of the item. A single meat item with cooking or braising liquid may remain `meat`; do not recombine separately returned meat, egg, or vegetable items merely to create a soup. Use `solid_mixed_meals` for customary cohesive combination dishes such as burgers, sandwiches, pizza, wraps, mixed rice bowls, fried rice, and casseroles, or when no more specific category defines the item. Use `other_food` only when an edible item cannot be reliably assigned to any of the other 18 categories.
 
+Edible insects such as crickets or grasshoppers are `other_food`, not meat or seafood.
+
 ## Post-Extraction Name Normalization
 
 Extract the food identity, major ingredients, preparation, and amount from the user text before consulting this vocabulary. Then normalize only semantically compatible wording.
