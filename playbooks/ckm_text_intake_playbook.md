@@ -184,7 +184,7 @@ Ignore non-food UI text, button labels, tab names, calorie rings, charts, app na
 
 ## Amount Rules
 
-Every returned food item must include a usable `estimated_amount` and `unit`.
+Every returned food item must include an `estimated_amount` and a form-appropriate `unit`.
 
 Use:
 
@@ -193,7 +193,7 @@ Use:
 
 Do not use `piece`, `serving`, `cup`, `tbsp`, `egg`, `slice`, or household units in `unit`. Convert them to rough grams/ml.
 
-If the text provides explicit quantity, use it and set `amount_source = "explicit_text"`.
+If the text provides an explicit weight, volume, count, fraction, household portion, or serving container, convert it to a reasonable grams/ml estimate and set `amount_source = "explicit_text"`.
 
 Examples:
 
@@ -202,9 +202,9 @@ Examples:
 - `2 fried eggs` -> estimate about `100g`, `amount_source = "explicit_text"` because count was explicit.
 - `half avocado` -> estimate about `70g`, `amount_source = "explicit_text"` because fraction was explicit.
 
-If the text names food but gives no explicit amount, provide a rough default portion estimate only when a reasonable meal-serving interpretation exists. Set `recognition_confidence = "low"` and add a warning.
+An amount may be inferred from an explicit portion expression such as `one egg`, `half an avocado`, `one slice`, `one bowl`, or `two bites`. The wording is explicit evidence even though conversion to grams/ml is approximate.
 
-If the text is too vague to estimate amount, return no item or mark the item as failed through validation.
+If the text only states that a food or drink was consumed and contains no weight, volume, count, fraction, household portion, serving container, or other amount evidence, do not invent a default serving. Keep the recognized item and return `estimated_amount = 0`, use `ml` for liquids or `g` for solids, and set `amount_source = "unknown"`. Zero means the business system must ask the user for an amount; it is not an estimated consumed amount.
 
 ## Product And Package Rules
 
