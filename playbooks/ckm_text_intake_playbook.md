@@ -201,8 +201,10 @@ Examples:
 - `30 ml cream` -> `estimated_amount = 30`, `unit = "ml"`, `amount_source = "explicit_text"`.
 - `2 fried eggs` -> estimate about `100g`, `amount_source = "explicit_text"` because count was explicit.
 - `half avocado` -> estimate about `70g`, `amount_source = "explicit_text"` because fraction was explicit.
+- `one bowl of rice` -> estimate a common bowl portion in grams and use `amount_source = "explicit_text"` because the serving container was explicit.
+- `one cup of coffee` -> estimate a common cup volume in ml and use `amount_source = "explicit_text"` because the serving container was explicit.
 
-An amount may be inferred from an explicit portion expression such as `one egg`, `half an avocado`, `one slice`, `one bowl`, or `two bites`. The wording is explicit evidence even though conversion to grams/ml is approximate.
+An amount must be inferred from an explicit portion expression such as `one egg`, `half an avocado`, `one slice`, `one bowl`, `one cup`, or `two bites`. The wording is explicit evidence even though conversion to grams/ml is approximate. Do not output zero merely because the household portion lacks an exact metric size.
 
 If the text only states that a food or drink was consumed and contains no weight, volume, count, fraction, household portion, serving container, or other amount evidence, do not invent a default serving. Keep the recognized item and return `estimated_amount = 0`, use `ml` for liquids or `g` for solids, and set `amount_source = "unknown"`. Zero means the business system must ask the user for an amount; it is not an estimated consumed amount.
 
