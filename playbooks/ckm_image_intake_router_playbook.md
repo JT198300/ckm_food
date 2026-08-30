@@ -266,22 +266,24 @@ Sauce and dressing rule:
 - If sauce, dip, dressing, butter, cream, or oil is visibly separate on the side or in a distinct pool, output it as a separate item when nutritionally meaningful.
 - A physically separate side food is not a sauce merely because it accompanies the main dish.
 
-For every visible edible food item, output a rough grams/ml estimate when enough visual or textual evidence exists.
+For every visible edible food item returned in `completed_food_intake`, output a positive rough grams/ml estimate. The estimate is an editable central value for immediate downstream nutrition and keto-label rendering; it is not a claim of precise measurement.
 
-Prefer an imperfect rough visual estimate over null when the estimate is reasonably grounded. A standard plate, bowl, cup, glass, can, bottle, pan, tray, package, hand, utensil, or visible item count is sufficient scale evidence. For a complete plated serving, whole pizza, steak, patty, egg, bread slice, cheese portion, dessert piece, or visibly filled drink container, output one plausible central estimate and use low confidence when needed. Normal uncertainty of tens of grams is not a reason to return null.
+Prefer an imperfect rough visual estimate over null. A standard plate, bowl, cup, glass, can, bottle, pan, tray, package, hand, utensil, visible item count, or recognizable serving format is sufficient scale evidence. For a complete plated serving, whole pizza, steak, patty, egg, bread slice, cheese portion, dessert piece, or visibly filled drink container, output one plausible central estimate and use low confidence when needed. Normal uncertainty of tens of grams is not a reason to return null.
+
+A partially cropped serving or container must still receive a central estimate when its serving format is recognizable. For example, a recognizable standard takeaway cold-drink cup may be estimated from common cup capacity and visible fill level even when the top or bottom is outside the crop. Do not return null only because a screenshot crops the container, hides the printed capacity, or weakens exact scale. Use `amount_source = "visual_estimate"` and low recognition confidence when appropriate.
 
 Before returning `completed_food_intake`, run this amount completeness check:
 
 ```python
 for item in intake_items:
-    if whole_visible_portion(item) and has_any_scale_anchor(item):
+    if item.item_type != "unknown":
         assert item.estimated_amount > 0
         assert item.unit in {"g", "ml"}
 ```
 
 This check applies to ordinary served food and visible raw food portions. It does not authorize inventing a package-label value.
 
-Use null only when no scale anchor exists, the food is severely cropped or obscured, or plausible amounts differ by roughly an order of magnitude. If amount remains null, keep the item for per-100g nutrition and keto analysis; only consumed totals require user amount.
+For a recognized food or drink in `completed_food_intake`, do not return null merely because the amount is uncertain. Use the most plausible editable central serving estimate. If no defensible serving form, container class, visible portion, item count, or other amount prior exists at all, keep the item only as a last resort and mark it for user correction; this exception should be rare.
 
 Use `g` for solid food and `ml` for liquids.
 
