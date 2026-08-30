@@ -266,28 +266,30 @@ Sauce and dressing rule:
 - If sauce, dip, dressing, butter, cream, or oil is visibly separate on the side or in a distinct pool, output it as a separate item when nutritionally meaningful.
 - A physically separate side food is not a sauce merely because it accompanies the main dish.
 
-For every visible edible food item returned in `completed_food_intake`, output a positive rough grams/ml estimate. The estimate is an editable central value for immediate downstream nutrition and keto-label rendering; it is not a claim of precise measurement.
+For every visible edible food item returned in `completed_food_intake`, output a rough grams/ml amount. The estimate is an editable central value for immediate downstream nutrition and keto-label rendering; it is not a claim of precise measurement.
 
 Prefer an imperfect rough visual estimate over null. A standard plate, bowl, cup, glass, can, bottle, pan, tray, package, hand, utensil, visible item count, or recognizable serving format is sufficient scale evidence. For a complete plated serving, whole pizza, steak, patty, egg, bread slice, cheese portion, dessert piece, or visibly filled drink container, output one plausible central estimate and use low confidence when needed. Normal uncertainty of tens of grams is not a reason to return null.
 
-A partially cropped serving or container must still receive a central estimate when its serving format is recognizable. For example, a recognizable standard takeaway cold-drink cup may be estimated from common cup capacity and visible fill level even when the top or bottom is outside the crop. Do not return null only because a screenshot crops the container, hides the printed capacity, or weakens exact scale. Use `amount_source = "visual_estimate"` and low recognition confidence when appropriate.
+A partially cropped serving or container should still receive a central estimate when its serving format is recognizable. For example, a recognizable standard takeaway cold-drink cup may be estimated from common cup capacity and visible fill level even when the top or bottom is outside the crop. Use `amount_source = "visual_estimate"` and low recognition confidence when appropriate.
+
+When no defensible amount can be estimated, return `estimated_amount = 0` rather than null. Choose the unit from the food form: use `ml` for liquids and `g` for solids. Set `amount_source = "unknown"`, `amount_status = "needs_user_input"`, and `requires_user_amount = true` downstream. Zero means “amount not yet known”; it is not an estimated consumed amount.
 
 Before returning `completed_food_intake`, run this amount completeness check:
 
 ```python
 for item in intake_items:
     if item.item_type != "unknown":
-        assert item.estimated_amount > 0
+        assert item.estimated_amount >= 0
         assert item.unit in {"g", "ml"}
 ```
 
 This check applies to ordinary served food and visible raw food portions. It does not authorize inventing a package-label value.
 
-For a recognized food or drink in `completed_food_intake`, do not return null merely because the amount is uncertain. Use the most plausible editable central serving estimate. If no defensible serving form, container class, visible portion, item count, or other amount prior exists at all, keep the item only as a last resort and mark it for user correction; this exception should be rare.
+For a recognized food or drink in `completed_food_intake`, use the most plausible editable central serving estimate when grounded. If no defensible serving form, container class, visible portion, item count, or other amount prior exists, return zero with a form-appropriate `g` or `ml` unit so the business system can request user correction without losing the food item or its per-100g labels.
 
 Use `g` for solid food and `ml` for liquids.
 
-For product or package images, use visible package weight/capacity when the benchmark task is product recognition. Mark the source with `amount_source = "package_label"` when the amount is read from the package, or `amount_source = "visual_estimate"` when it is estimated visually. If product identity is clear but amount is not readable or responsibly estimable, keep the item and leave amount missing for user completion.
+For product or package images, use visible package weight/capacity when the benchmark task is product recognition. Mark the source with `amount_source = "package_label"` when the amount is read from the package, or `amount_source = "visual_estimate"` when it is estimated visually. If product identity is clear but amount is not readable or responsibly estimable, return zero with `g` or `ml` according to the product form and mark the amount for user completion.
 
 ## Text Screenshot Rules
 
@@ -338,7 +340,7 @@ Use a generic food name as `item_name` rather than a brand-heavy product title. 
 
 Read the package label before simplifying the product name. Use package net weight or capacity only when a quantity is visibly associated with a mass or volume unit such as `g`, `kg`, `oz`, `lb`, `ml`, or `L`; then set `amount_source = "package_label"`. Never treat a price, date, serving count, calorie value, or other unitless number as package weight. If no labeled weight is readable but the edible contents and package scale are visually clear enough, provide a rough central estimate and set `amount_source = "visual_estimate"`; otherwise leave amount missing.
 
-If the edible product is recognized but no amount can be read or reasonably estimated, still output the product item with a missing amount. Do not fail the whole image intake solely because one recognized product lacks amount. The business system should collect the missing amount from the user and continue nutrition calculation for items that already have valid amounts.
+If the edible product is recognized but no amount can be read or reasonably estimated, still output the product item with `estimated_amount = 0` and a form-appropriate `g` or `ml` unit. Do not fail the whole image intake solely because one recognized product lacks amount. The business system should collect the missing amount from the user while retaining per-100g nutrition and keto labels.
 
 If multiple packaged foods are visible, output each product separately.
 
