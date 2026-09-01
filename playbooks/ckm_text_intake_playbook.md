@@ -195,6 +195,8 @@ Do not use `piece`, `serving`, `cup`, `tbsp`, `egg`, `slice`, or household units
 
 If the text provides an explicit weight, volume, count, fraction, household portion, or serving container, convert it to a reasonable grams/ml estimate and set `amount_source = "explicit_text"`.
 
+HARD TEXT AMOUNT RULE: An explicit count, fraction, household portion, or serving container is sufficient amount evidence and must receive a reasonable total grams/ml estimate. It must not return zero, null, or unknown merely because conversion is approximate. A count is not metric mass or volume: never copy the count numeral directly into `estimated_amount` and relabel it as `g` or `ml`. Estimate the total metric amount represented by all counted items. For example, `2 burgers` or `2个汉堡` must never become `2g`; estimate the combined weight of two burgers. Likewise, `1 egg` must receive a representative one-egg weight rather than `1g`.
+
 Examples:
 
 - `115g beef` -> `estimated_amount = 115`, `unit = "g"`, `amount_source = "explicit_text"`.
@@ -205,6 +207,8 @@ Examples:
 - `one cup of coffee` -> estimate a common cup volume in ml and use `amount_source = "explicit_text"` because the serving container was explicit.
 
 An amount must be inferred from an explicit portion expression such as `one egg`, `half an avocado`, `one slice`, `one bowl`, `one cup`, or `two bites`. The wording is explicit evidence even though conversion to grams/ml is approximate. Do not output zero merely because the household portion lacks an exact metric size.
+
+Final amount check: when the source span contains an explicit count or household portion but no explicit metric amount, `estimated_amount` must not equal the raw count numeral. Re-estimate the total grams/ml before returning.
 
 If the text only states that a food or drink was consumed and contains no weight, volume, count, fraction, household portion, serving container, or other amount evidence, do not invent a default serving. Keep the recognized item and return `estimated_amount = 0`, use `ml` for liquids or `g` for solids, and set `amount_source = "unknown"`. Zero means the business system must ask the user for an amount; it is not an estimated consumed amount.
 
