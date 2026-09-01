@@ -54,7 +54,7 @@ Use the common cooked or served form unless the item name or context clearly ind
 
 For dishes, estimate the average prepared dish per 100g, including typical cooking oil, sauce, moisture, and preparation style when relevant.
 
-Macronutrients should usually be present:
+The following six core macronutrient fields are mandatory for every recognized, ordinarily edible food or drink:
 
 - `protein_g`
 - `fat_g`
@@ -62,6 +62,12 @@ Macronutrients should usually be present:
 - `fiber_g`
 - `sugar_g`
 - `sugar_alcohol_g`
+
+Each core field must be a finite, non-negative number. Never return null, omit a core field, or use an empty value.
+
+If the exact recipe, brand, preparation, or portion composition is uncertain, still provide a reasonable representative per 100g estimate. Express that uncertainty through `nutrition_confidence = "low"` and, when appropriate, `nutrition_profile_stability = "variable"`; do not express uncertainty through missing nutrition values.
+
+Do not use zero as a substitute for an unknown value. Return zero only when the nutrient is reasonably expected to be absent or nutritionally negligible. Except for genuinely zero-energy drinks, `protein_g`, `fat_g`, and `total_carb_g` must not all be zero.
 
 `total_carb_g` includes sugar alcohol. Sugar alcohol must not be added on top of `total_carb_g` again. Deterministic code excludes `sugar_alcohol_g` from net carbs.
 
@@ -434,6 +440,8 @@ Final Carb Impact:
 
 The code stage must check:
 
+- all six core macronutrient fields are present, finite numbers;
+- except for genuinely zero-energy drinks, protein, fat, and total carbohydrate are not all zero;
 - all numeric nutrition values are non-negative when present;
 - `fiber_g <= total_carb_g`;
 - `fiber_g + sugar_alcohol_g <= total_carb_g`;
