@@ -212,15 +212,9 @@ Global cooking-method allowlist:
 
 Do not emit more specific or alternative method words such as `pan-fried`, `pan-seared`, `seared`, `sauteed`, `poached`, `air-fried`, or `barbecued` unless a food-specific allowed-name combination below explicitly includes that exact name. Collapse those cases to `cooked <base food>`.
 
-Food-specific allowed-name combinations override the global method allowlist. When a base food appears below, both names must select from that food's list only; no other raw, cooked, method, cut, or presentation variant is permitted in `normalized_name`.
+Food-specific allowed-name combinations override the global method allowlist. They are output constraints only and must never be used as food-recognition candidates or as evidence for identity. Independently identify the base food first, then consult the list only when that identity is already supported by the image. Never promote generic fish, white fish, or an uncertain animal protein to salmon merely because salmon has an allowed-name list. When an independently identified base food appears below, both names must select from that food's list only; no other raw, cooked, method, cut, or presentation variant is permitted in `normalized_name`.
 
 - `salmon`: `raw salmon`; `cooked salmon`
-
-Required salmon behavior:
-
-- Visibly raw salmon steak or fillet -> `normalized_name = "raw salmon"`; for `en-US`, `item_name = "Raw salmon"`.
-- Visibly cooked salmon, including grilled, roasted, fried, seared, baked, or otherwise cooked salmon -> `normalized_name = "cooked salmon"`; for `en-US`, `item_name = "Cooked salmon"`.
-- Never output bare `salmon`, `salmon steak`, `salmon fillet`, `grilled salmon`, or another salmon preparation name when the raw-versus-cooked state is defensible.
 
 Rules:
 
