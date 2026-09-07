@@ -50,7 +50,9 @@ Do not calculate net carbs.
 
 Do not output final Carb Impact.
 
-Use the common cooked or served form unless the item name or context clearly indicates otherwise.
+Before estimating nutrients, lock the preparation state from the explicit food name and factual preparation context. `raw` means nutrition per 100g of the uncooked edible food; `cooked` or a named cooking method means nutrition per 100g after cooking. Use the common served form only when the name and context contain no preparation-state evidence.
+
+Preparation state is a required reference-basis constraint, not a confidence hint. Before returning each item, verify that an item named `raw` does not use cooked reference values and that an item named `cooked` or with a named cooking method does not use raw reference values.
 
 For dishes, estimate the average prepared dish per 100g, including typical cooking oil, sauce, moisture, and preparation style when relevant.
 
