@@ -118,15 +118,19 @@ Food-specific allowed-name combinations override the global method allowlist. Th
 Apply this rule only to simple vegetable foods and vegetable ingredients, not to cohesive dishes.
 
 - `normalized_name` must be the lowercase English base vegetable identity, independent of whether the current food is raw or cooked. Use `spinach`, `chayote`, `tomato`, or `napa cabbage`, not `raw spinach`, `cooked chayote`, or `steamed napa cabbage`.
-- When raw state is stated or clearly supported, include exactly one `raw` cue in `nutrition_relevant_cues`. When cooked state is stated or clearly supported, include exactly one `cooked` cue. Do not include both.
+- Include exactly one `raw` cue only when the source text explicitly says raw or uncooked. Include exactly one `cooked` cue only when the source explicitly says cooked or names an unambiguous cooking method. Do not include both.
 - State cue control words are exactly `raw` and `cooked`; collapse individual cooking-method words such as steamed, boiled, roasted, grilled, fried, or sauteed to `cooked` for a simple vegetable.
-- If raw versus cooked state is genuinely uncertain, do not invent a state cue. Keep the base vegetable identity, set `recognition_confidence = "low"`, and record the uncertainty in `ambiguities`.
+- A bare vegetable identity such as `spinach`, `tomato`, or `chayote` never implies raw or cooked and must not receive either state cue. When state is unstated, keep the base vegetable identity, set `recognition_confidence = "low"` for the unresolved state, and record the uncertainty in `ambiguities`.
 - `item_name` may naturally preserve the stated raw or cooked wording in `output_locale`, but the machine `normalized_name` remains the base vegetable identity.
 - `estimated_amount` is the current described-state weight. A `raw` cue means the amount represents raw edible weight; a `cooked` cue means it represents cooked edible weight.
 
 ### Standardized Prepared-Product Naming Hard Rule
 
 For a stable, conventionally named prepared product such as bread, rye bread, toast, plain yogurt, or a specific cheese, use its conventional ready-to-eat canonical identity without a redundant raw/cooked modifier. Minor toasting, seeds, moisture, brand, or similar ordinary variation does not create a cue merely to alter nutrition. For example, `toasted rye bread` normalizes to `rye bread` with no `toasted` cue. Preserve a distinct stable product identity when the source supports one; keep material separate additions as separate items or retain a cohesive combination as a dish.
+
+### Final Naming Self-Check
+
+Before returning each item, verify the category-specific location of state and preparation. A dish still has its full identity; a simple animal protein has the required state-bearing name when state was stated; a simple vegetable has a base name and no more than one explicitly supported state cue; and a standardized product has no minor-variation cue. Remove any cue whose meaning is already expressed by `item_name` or `normalized_name`, including equivalent forms such as `toast` and `toasted bread`.
 
 ## Post-Extraction Name Normalization
 
