@@ -47,7 +47,7 @@ for item in locked_items:
     render_localized_item_name(identity, output_locale)
 ```
 
-Extract amounts and concise lowercase English canonical `normalized_name` values from the text for each locked item, using locale only for the identity tie-break above. Then render each item one-to-one as frontend-facing `item_name`; localization must never merge, split, add, or remove food items. Both names must preserve the same food identity, major ingredients, and nutrition-relevant preparation stated by the user. Keep `nutrition_relevant_cues` in concise English. Preserve `source_text_span` in the original input language. For `en-US`, `de-DE`, `fr-FR`, and `es-ES`, start `item_name` with an uppercase letter and use natural sentence-style casing, never Title Case for every word. Preserve required local capitalization such as German nouns. For `zh-CN`, use natural Simplified Chinese naming.
+Extract amounts and concise lowercase English canonical `normalized_name` values from the text for each locked item, using locale only for the identity tie-break above. Then render each item one-to-one as frontend-facing `item_name`; localization must never merge, split, add, or remove food items. Both names must preserve the same food identity and major ingredients stated by the user. Apply the category-specific state and preparation rules below instead of requiring every preparation word to appear in both names. Keep `nutrition_relevant_cues` in concise English. Preserve `source_text_span` in the original input language. For `en-US`, `de-DE`, `fr-FR`, and `es-ES`, start `item_name` with an uppercase letter and use natural sentence-style casing, never Title Case for every word. Preserve required local capitalization such as German nouns. For `zh-CN`, use natural Simplified Chinese naming.
 
 ## Food Category
 
@@ -81,13 +81,60 @@ Classify by the practical identity of each returned item. Prefer a specific food
 
 Edible insects such as crickets or grasshoppers are `other_food`, not meat or seafood.
 
+## Category-Specific Name And State Contract
+
+Apply naming semantics only after food identity, item boundaries, `item_type`, and `food_category` are independently determined. Use this precedence so category labels never erase dish identity:
+
+1. A cohesive dish follows the dish rule, even when its `food_category` is `vegetables`, `eggs`, `meat`, or another ingredient category.
+2. A simple animal-protein food or ingredient follows the animal-protein state rule.
+3. A simple vegetable or vegetable ingredient follows the vegetable state rule.
+4. A standardized prepared product follows the conventional-product rule.
+5. Other foods retain a concise practical canonical identity supported by the source text.
+
+`item_name` is localized for display. `normalized_name`, `food_category`, and `nutrition_relevant_cues` are stable machine semantics and must remain one-to-one with that display item.
+
+### Cohesive-Dish Naming Hard Rule
+
+For `item_type = "dish"`, `normalized_name` must retain the full practical dish identity rather than collapse to a generic component. For example, use `tomato scrambled eggs`, not `scrambled eggs`, and `chicken curry`, not `chicken`. Keep material ingredients or preparation already expressed by the dish name in the name. Use `nutrition_relevant_cues` only for material nutrition drivers stated by the user but not already expressed by either name.
+
+### Raw/Cooked Animal-Protein Naming Hard Rule
+
+Apply this rule to simple animal-protein foods and ingredients, including meat, poultry, fish, and shellfish. This is a mandatory output constraint, not an example set or a suggestion.
+
+- When the source explicitly says the food is raw, `normalized_name` must be `raw <base food>`.
+- When the source explicitly says the food is cooked but gives no supported method, `normalized_name` must be `cooked <base food>`.
+- A specific cooking method may replace `cooked` only when the text explicitly supports it and the exact method is in the global allowlist: `grilled`, `roasted`, `boiled`, `steamed`, `fried`, or `braised`.
+- Collapse unsupported or overly specific method words such as `pan-fried`, `pan-seared`, `seared`, `sauteed`, `poached`, `air-fried`, or `barbecued` to `cooked <base food>` unless a food-specific allowed-name combination explicitly permits that exact name.
+- Never remove all state meaning during normalization. For example, do not map `raw shrimp` to `shrimp`, `grilled lamb chops` to `lamb chops`, or `cooked salmon` to `salmon`.
+- For `en-US`, `item_name` must use the same allowed state-bearing food name as `normalized_name`, with natural sentence casing. For another `output_locale`, `item_name` must be its direct localized semantic equivalent.
+- If the source does not state or support raw versus cooked state, keep the practical base food name and do not invent a state.
+
+Food-specific allowed-name combinations override the global method allowlist. They are output constraints only and must never be used as identity candidates. Independently identify the base food first. Never promote generic fish, white fish, or another uncertain protein to salmon merely because salmon has an allowed-name list.
+
+- `salmon`: `raw salmon`; `cooked salmon`
+
+### Simple-Vegetable State Naming Hard Rule
+
+Apply this rule only to simple vegetable foods and vegetable ingredients, not to cohesive dishes.
+
+- `normalized_name` must be the lowercase English base vegetable identity, independent of whether the current food is raw or cooked. Use `spinach`, `chayote`, `tomato`, or `napa cabbage`, not `raw spinach`, `cooked chayote`, or `steamed napa cabbage`.
+- When raw state is stated or clearly supported, include exactly one `raw` cue in `nutrition_relevant_cues`. When cooked state is stated or clearly supported, include exactly one `cooked` cue. Do not include both.
+- State cue control words are exactly `raw` and `cooked`; collapse individual cooking-method words such as steamed, boiled, roasted, grilled, fried, or sauteed to `cooked` for a simple vegetable.
+- If raw versus cooked state is genuinely uncertain, do not invent a state cue. Keep the base vegetable identity, set `recognition_confidence = "low"`, and record the uncertainty in `ambiguities`.
+- `item_name` may naturally preserve the stated raw or cooked wording in `output_locale`, but the machine `normalized_name` remains the base vegetable identity.
+- `estimated_amount` is the current described-state weight. A `raw` cue means the amount represents raw edible weight; a `cooked` cue means it represents cooked edible weight.
+
+### Standardized Prepared-Product Naming Hard Rule
+
+For a stable, conventionally named prepared product such as bread, rye bread, toast, plain yogurt, or a specific cheese, use its conventional ready-to-eat canonical identity without a redundant raw/cooked modifier. Minor toasting, seeds, moisture, brand, or similar ordinary variation does not create a cue merely to alter nutrition. For example, `toasted rye bread` normalizes to `rye bread` with no `toasted` cue. Preserve a distinct stable product identity when the source supports one; keep material separate additions as separate items or retain a cohesive combination as a dish.
+
 ## Post-Extraction Name Normalization
 
 Extract the food identity, major ingredients, preparation, and amount from the user text before consulting this vocabulary. Then normalize only semantically compatible wording.
 
 Rules:
 
-- Never remove a user-stated ingredient or preparation detail to match a preferred name.
+- Never remove a user-stated major ingredient. Handle preparation wording according to the category-specific contract above.
 - Preserve every major ingredient that materially changes nutrition. For example, `mixed green salad with cheese` and `mixed green salad with chicken` remain different names.
 - If no family fits, keep a concise practical name derived from the text.
 - Treat the conservative canonical name families below as lowercase `normalized_name` values used for lookup and matching.
@@ -132,7 +179,7 @@ Canonical name families:
 - `sardines` <- sardine
 - `french fries` <- fries
 
-These mappings normalize only wording, number, or presentation state. Preserve modifiers such as `with cheese`, `with chicken`, `breaded`, `battered`, `fried`, `roasted`, `smoked`, `sweetened`, `in oil`, `with dressing`, and `with cream sauce`. Do not map a food into a family merely because it belongs to the same category.
+These mappings normalize only wording, number, or presentation state. Preserve material modifiers such as `with cheese`, `with chicken`, `breaded`, `battered`, `smoked`, `sweetened`, `in oil`, `with dressing`, and `with cream sauce`, except where the category-specific contract places state in a cue or treats a preparation as minor product variation. Do not map a food into a family merely because it belongs to the same category.
 
 ## Output Contract
 
@@ -166,7 +213,7 @@ Use the same practical nutrition-unit test across all food categories:
 - Do not output both a parent dish and its integrated ingredients when that double-counts the same intake.
 - Do not add category-specific extraction rules in response to individual benchmark failures.
 
-Use a practical generic food or dish name rather than a brand-heavy product title. Preserve preparation or subtype in the name only when it materially affects nutrition; retain secondary visible or stated details in concise context fields when available.
+Use a practical generic food or dish name rather than a brand-heavy product title. Preserve preparation or subtype in the machine field specified by the category-specific contract; retain secondary stated details in concise context fields when available.
 
 ## Food Name Capitalization
 
@@ -185,6 +232,8 @@ Ignore non-food UI text, button labels, tab names, calorie rings, charts, app na
 ## Amount Rules
 
 Every returned food item must include an `estimated_amount` and a form-appropriate `unit`.
+
+`estimated_amount` always represents the food in its currently described state. For example, an amount attached to raw spinach is raw edible weight, while an amount attached to cooked spinach is cooked edible weight. Do not reinterpret a current-state amount as a pre-cooking or post-cooking equivalent.
 
 Use:
 
@@ -244,7 +293,7 @@ Low confidence is not a failure when the output contract is complete.
 
 ## Nutrition-Relevant Cues
 
-Use `nutrition_relevant_cues` only for a short nutrition-relevant detail that cannot be represented reliably in the practical food name. If an explicit ingredient, preparation, sauce, coating, or formulation is already present in `item_name` and `normalized_name`, do not repeat it in cues. Do not use item count, quoted amount, or the food name itself as a cue. For explicit, high-confidence text with a sufficiently specific food name, return `nutrition_relevant_cues = []`.
+Use `nutrition_relevant_cues` only for a short nutrition-relevant detail that cannot be represented reliably in the practical food name. If an explicit ingredient, preparation, sauce, coating, or formulation is already present in `item_name` and `normalized_name`, do not repeat it in cues. The controlled `raw` or `cooked` cue for a simple vegetable is a required exception. Do not use item count, quoted amount, or the food name itself as a cue. For explicit, high-confidence text with a sufficiently specific food name, return `nutrition_relevant_cues = []` unless the simple-vegetable state rule requires one state cue.
 
 ## Error Codes
 

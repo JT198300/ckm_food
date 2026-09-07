@@ -15,9 +15,11 @@ Each item should already contain:
 - `item_id`
 - `item_name`
 - `normalized_name`
+- `food_category`
 - `item_type`
 - `estimated_amount`
 - `unit`
+- `nutrition_relevant_cues`
 - `recognition_confidence`
 - `source_type`
 - `source_image_index`
@@ -50,11 +52,15 @@ Do not calculate net carbs.
 
 Do not output final Carb Impact.
 
-Before estimating nutrients, lock the preparation state from the explicit food name and factual preparation context. `raw` means nutrition per 100g of the uncooked edible food; `cooked` or a named cooking method means nutrition per 100g after cooking. Use the common served form only when the name and context contain no preparation-state evidence.
+Before estimating nutrients, determine the reference basis from `item_type`, `food_category`, `normalized_name`, and factual `nutrition_relevant_cues` in this order:
 
-Preparation state is a required reference-basis constraint, not a confidence hint. Before returning each item, verify that an item named `raw` does not use cooked reference values and that an item named `cooked` or with a named cooking method does not use raw reference values.
+1. For a cohesive dish, use the full dish identity plus material cues and estimate the average prepared dish per 100g, including typical cooking oil, sauce, moisture, and preparation style when relevant.
+2. For simple animal proteins, read raw/cooked state or the allowed cooking method from `normalized_name`. `raw` requires an uncooked edible-food basis; `cooked` or a named method requires an after-cooking basis.
+3. For simple vegetables and vegetable ingredients, use the base `normalized_name` for identity and read state from the controlled `raw` or `cooked` cue. Do not treat the absence of a state word in a vegetable `normalized_name` as evidence that the vegetable is cooked.
+4. For a standardized prepared product, use the conventional product's ordinary ready-to-eat basis. Do not infer a different profile from minor variation omitted by Intake.
+5. For other foods with no state evidence, use the common served form.
 
-For dishes, estimate the average prepared dish per 100g, including typical cooking oil, sauce, moisture, and preparation style when relevant.
+Preparation state is a required reference-basis constraint, not a confidence hint. `estimated_amount` is the current-state amount, and every per-100g estimate must use that same state. Before returning each item, verify that raw evidence does not use cooked reference values, cooked evidence does not use raw reference values, and current-state amount scaling remains internally consistent.
 
 The following six core macronutrient fields are mandatory for every recognized, ordinarily edible food or drink:
 

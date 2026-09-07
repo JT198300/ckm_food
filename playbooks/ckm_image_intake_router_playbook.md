@@ -42,7 +42,7 @@ for item in locked_items:
     render_localized_item_name(identity, output_locale)
 ```
 
-Determine amounts and concise lowercase English canonical `normalized_name` values from the evidence for each locked item. For a culturally established dish, use its conventional English or romanized canonical identity rather than replacing it with an overly generic description. Then render each item one-to-one as frontend-facing `item_name`; localization must never merge, split, add, or remove food items. Both names must preserve the same food identity, major ingredients, and nutrition-relevant preparation. Keep `nutrition_relevant_cues` in concise English. Preserve screenshot text in its original language when returning `extracted_text`. For `en-US`, `de-DE`, `fr-FR`, and `es-ES`, start `item_name` with an uppercase letter and use natural sentence-style casing, never Title Case for every word. Preserve required local capitalization such as German nouns. For `zh-CN`, use natural Simplified Chinese naming.
+Determine amounts and concise lowercase English canonical `normalized_name` values from the evidence for each locked item. For a culturally established dish, use its conventional English or romanized canonical identity rather than replacing it with an overly generic description. Then render each item one-to-one as frontend-facing `item_name`; localization must never merge, split, add, or remove food items. Both names must preserve the same food identity and major ingredients. Apply the category-specific state and preparation rules below instead of requiring every preparation word to appear in both names. Keep `nutrition_relevant_cues` in concise English. Preserve screenshot text in its original language when returning `extracted_text`. For `en-US`, `de-DE`, `fr-FR`, and `es-ES`, start `item_name` with an uppercase letter and use natural sentence-style casing, never Title Case for every word. Preserve required local capitalization such as German nouns. For `zh-CN`, use natural Simplified Chinese naming.
 
 ## Food Category
 
@@ -170,11 +170,11 @@ Subtype specificity rule:
 Low-confidence visual cue rule:
 
 - When `recognition_confidence = "low"` because the food name may be incomplete or visually uncertain, add `nutrition_relevant_cues`.
-- When `recognition_confidence = "high"`, return `nutrition_relevant_cues = []` unless a visible preparation, formulation, sauce, coating, or subtype detail not already present in the food name could materially change the per-100g nutrition estimate.
+- When `recognition_confidence = "high"`, return `nutrition_relevant_cues = []` unless a visible preparation, formulation, sauce, coating, or subtype detail not already present in the food name could materially change the per-100g nutrition estimate, or the simple-vegetable state rule below requires `raw` or `cooked`.
 - Cues are concise visual facts for the nutrition stage, not explanations for the user.
 - Use max 2 cues per item, each ideally under 8 words.
 - Cues should describe visible texture, preparation, composition, or packaging without asserting an unsupported identity.
-- Do not use cues for item count, color, plating position, ordinary doneness, garnish, or evidence that merely repeats the item name. Examples that must not be cues for a high-confidence `Fried eggs` item include `two fried eggs`, `visible yolks`, and `runny yolks`.
+- Do not use cues for item count, color, plating position, ordinary doneness, garnish, or evidence that merely repeats the item name. The controlled `raw` or `cooked` cue for a simple vegetable is a required exception. Examples that must not be cues for a high-confidence `Fried eggs` item include `two fried eggs`, `visible yolks`, and `runny yolks`.
 - Do not add long descriptions. Do not estimate nutrition in cues.
 
 Identity uncertainty rule:
@@ -186,6 +186,22 @@ Identity uncertainty rule:
 ## Post-Identification Name Normalization
 
 Decide food regions, item boundaries, identity, and amount from the image before consulting this vocabulary. Then normalize only semantically compatible wording. The vocabulary is not an exhaustive candidate list.
+
+### Category-Specific Normalization Order
+
+Apply naming semantics only after food identity, item boundaries, `item_type`, and `food_category` are independently determined. Use this precedence so category labels never erase dish identity:
+
+1. A cohesive dish follows the dish rule, even when its `food_category` is `vegetables`, `eggs`, `meat`, or another ingredient category.
+2. A simple animal-protein food or ingredient follows the animal-protein state rule.
+3. A simple vegetable or vegetable ingredient follows the vegetable state rule.
+4. A standardized prepared product follows the conventional-product rule.
+5. Other foods retain a concise practical canonical identity supported by the evidence.
+
+`item_name` is localized for display. `normalized_name`, `food_category`, and `nutrition_relevant_cues` are stable machine semantics and must remain one-to-one with that display item.
+
+### Cohesive-Dish Naming Hard Rule
+
+For `item_type = "dish"`, `normalized_name` must retain the full practical dish identity rather than collapse to a generic component. For example, use `tomato scrambled eggs`, not `scrambled eggs`, and `chicken curry`, not `chicken`. Keep material ingredients or preparation already expressed by the dish name in the name. Use `nutrition_relevant_cues` only for material nutrition drivers that are supported by the evidence but not already expressed by either name.
 
 ### Raw/Cooked Animal-Protein Naming Hard Rule
 
@@ -216,17 +232,32 @@ Food-specific allowed-name combinations override the global method allowlist. Th
 
 - `salmon`: `raw salmon`; `cooked salmon`
 
-Rules:
+### Simple-Vegetable State Naming Hard Rule
+
+Apply this rule only to simple vegetable foods and vegetable ingredients, not to cohesive dishes.
+
+- `normalized_name` must be the lowercase English base vegetable identity, independent of whether the current food is raw or cooked. Use `spinach`, `chayote`, `tomato`, or `napa cabbage`, not `raw spinach`, `cooked chayote`, or `steamed napa cabbage`.
+- When raw state is visually supported, include exactly one `raw` cue in `nutrition_relevant_cues`. When cooked state is visually supported, include exactly one `cooked` cue. Do not include both.
+- State cue control words are exactly `raw` and `cooked`; collapse individual cooking-method words such as steamed, boiled, roasted, grilled, fried, or sauteed to `cooked` for a simple vegetable.
+- If raw versus cooked state is genuinely uncertain, do not invent a state cue. Keep the base vegetable identity, set `recognition_confidence = "low"`, and record the uncertainty in `ambiguities`.
+- `item_name` may naturally express the visible raw or cooked state in `output_locale`, but the machine `normalized_name` remains the base vegetable identity.
+- `estimated_amount` is the current visible-state weight. A `raw` cue means the amount represents raw edible weight; a `cooked` cue means it represents cooked edible weight.
+
+### Standardized Prepared-Product Naming Hard Rule
+
+For a stable, conventionally named prepared product such as bread, rye bread, toast, plain yogurt, or a specific cheese, use its conventional ready-to-eat canonical identity without a redundant raw/cooked modifier. Minor toasting, seeds, moisture, brand, or similar ordinary variation does not create a cue merely to alter nutrition. For example, `toasted rye bread` normalizes to `rye bread` with no `toasted` cue. Preserve a distinct stable product identity when the evidence supports one; keep material separate additions as separate items or retain a cohesive combination as a dish.
+
+General rules after the category-specific rules above:
 
 - Never invent evidence or change item boundaries to match a preferred name.
-- Preserve a subtype or state that materially changes carbs, fat, processing, or fatty-acid interpretation.
+- Preserve a subtype or state according to its category-specific machine-field location above.
 - If no family fits, keep the image-derived practical name.
 - Use a practical generic food identity when subtype evidence is unreliable, but do not force that generic name into the canonical vocabulary below.
 - Preserve every visible or text-supported major ingredient that materially changes nutrition. For example, use `mixed green salad with cheese` and `mixed green salad with chicken`, not `mixed green salad`, when those additions are evident.
 - Before naming any cohesive mixed food, inspect it for clearly visible nutrition-driving components. Keep the dish as one item; include at most one or two defining components in the name and put remaining material details not already expressed by the name into concise cues. Do not lengthen the name with every minor low-impact ingredient.
 - When cheese is attached as a topping and its separate mass is unreliable, keep patty and cheese as one `... patty with cheese` item. Group repeated identical patties into one item with total amount. Never double-count a parent item and its topping.
 - Cheese subtypes are intentionally absent. Preserve the image-derived cheese subtype; never collapse different cheeses into generic `cheese` because their nutrition differs.
-- Keep breaded, battered, sweetened, smoked, cream-sauced, or dressing-added evidence in the name or concise nutrition cues.
+- Keep breaded, battered, sweetened, smoked, cream-sauced, or dressing-added evidence in the name or concise nutrition cues unless the standardized-product rule classifies it as minor ordinary variation.
 - Treat the conservative canonical name families below as lowercase `normalized_name` values used for lookup and matching.
 - Output `item_name` as a natural frontend-facing food name in `output_locale`, using locale-appropriate naming and casing.
 - Preserve conventional capitalization for proper names and acronyms, such as `Greek yogurt`, `Caesar salad`, `Brussels sprouts`, `MCT oil`, and `BLT sandwich`.
