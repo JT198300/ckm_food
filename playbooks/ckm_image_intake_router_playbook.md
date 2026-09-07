@@ -187,6 +187,41 @@ Identity uncertainty rule:
 
 Decide food regions, item boundaries, identity, and amount from the image before consulting this vocabulary. Then normalize only semantically compatible wording. The vocabulary is not an exhaustive candidate list.
 
+### Raw/Cooked Animal-Protein Naming Hard Rule
+
+Apply this rule to simple animal-protein foods and ingredients, including meat, poultry, fish, and shellfish. This is a mandatory output constraint, not an example set or a suggestion.
+
+First determine the food's current visible state. A cooking appliance, hot pot, grill, pan, or preparation setting does not prove that the food is already cooked. Food that remains visibly raw must stay raw even when it is beside or newly placed on cooking equipment. Do not infer a cooking method before deciding raw versus cooked.
+
+- When the food is visibly raw, `normalized_name` must be `raw <base food>`.
+- When the food is visibly cooked but its cooking method is unclear, `normalized_name` must be `cooked <base food>`.
+- A specific cooking method may replace `cooked` only when the method is visually high-confidence and the exact method is in the global method allowlist below.
+- If the observed method is uncertain, visually unsupported, too specific, or outside the allowlist, fall back to `cooked <base food>`.
+- Never remove all state meaning during normalization. For example, do not map `raw shrimp` to `shrimp`, `grilled lamb chops` to `lamb chops`, or `cooked salmon` to `salmon`.
+- For `en-US`, `item_name` must use the same allowed state-bearing food name as `normalized_name`, with natural sentence casing. For another `output_locale`, `item_name` must be its direct localized semantic equivalent and must preserve the same raw, cooked, or allowed-method meaning.
+- If the image does not support a defensible raw-versus-cooked decision, keep the practical base food name, set `recognition_confidence = "low"`, and record the state uncertainty in `ambiguities`. Do not default an uncertain state to cooked.
+
+Global cooking-method allowlist:
+
+- `grilled`
+- `roasted`
+- `boiled`
+- `steamed`
+- `fried`
+- `braised`
+
+Do not emit more specific or alternative method words such as `pan-fried`, `pan-seared`, `seared`, `sauteed`, `poached`, `air-fried`, or `barbecued` unless a food-specific allowed-name combination below explicitly includes that exact name. Collapse those cases to `cooked <base food>`.
+
+Food-specific allowed-name combinations override the global method allowlist. When a base food appears below, both names must select from that food's list only; no other raw, cooked, method, cut, or presentation variant is permitted in `normalized_name`.
+
+- `salmon`: `raw salmon`; `cooked salmon`
+
+Required salmon behavior:
+
+- Visibly raw salmon steak or fillet -> `normalized_name = "raw salmon"`; for `en-US`, `item_name = "Raw salmon"`.
+- Visibly cooked salmon, including grilled, roasted, fried, seared, baked, or otherwise cooked salmon -> `normalized_name = "cooked salmon"`; for `en-US`, `item_name = "Cooked salmon"`.
+- Never output bare `salmon`, `salmon steak`, `salmon fillet`, `grilled salmon`, or another salmon preparation name when the raw-versus-cooked state is defensible.
+
 Rules:
 
 - Never invent evidence or change item boundaries to match a preferred name.
