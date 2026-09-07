@@ -248,6 +248,8 @@ Apply this rule only to simple vegetable foods and vegetable ingredients, not to
 
 ### Standardized Prepared-Product Naming Hard Rule
 
+Apply this rule only to `item_type = "simple_food"`. A standardized product may be the base of a cohesive dish, but its product identity must never collapse that dish: the dish rule remains authoritative and defining integrated ingredients stay in `normalized_name` rather than being moved only to cues.
+
 For a stable, conventionally named prepared product such as bread, rye bread, toast, plain yogurt, or a specific cheese, use its conventional ready-to-eat canonical identity without a redundant raw/cooked modifier. A supported stable subtype takes precedence over a generic preparation identity: `toasted rye bread` must normalize to `rye bread`, never `toast`, and must have no `toasted` or `rye bread` cue. Minor toasting, seeds, moisture, brand, or similar ordinary variation does not create a cue merely to alter nutrition. Preserve a distinct stable product identity when the evidence supports one; keep material separate additions as separate items or retain a cohesive combination as a dish.
 
 ### Final Naming Self-Check
